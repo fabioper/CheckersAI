@@ -7,59 +7,78 @@ public class Board : MonoBehaviour
     private readonly Piece[,] _pieces = new Piece[8, 8];
     public GameObject whitePiecesPrefab;
     public GameObject blackPiecePrefab;
-    public Vector3 boardOffset = new Vector3(-4.0f, 0.1f, -4.0f);
-    [SerializeField] private float piecesHorizontalDistance = 0.235f;
-    [SerializeField] private float piecesVerticalDistance = 0.24f;
-    [SerializeField] private Vector3 piecesOffset = new Vector3(0.48f, 0, 0.48f);
+    public GameObject boardGrid;
+    private BoardGrid _grid;
+    [SerializeField] public string gridCellTag = "BoardCell";
+    private Transform _selection;
 
     private void GenerateBoard()
     {
-        for (var y = 0; y < 3; y++)
+        for (var row = 0; row < 3; row++)
         {
-            var oddRow = IsOddRow(y);
-            for (var x = 0; x < 8; x += 2)
-                GeneratePiece(oddRow ? x : x + 1, y);
+            var oddRow = IsOdd(row);
+            for (var column = 0; column < 8; column += 2)
+                GeneratePiece(row, oddRow ? column : column + 1, whitePiecesPrefab);
         }
         
-        for (var y = 7; y > 4; y--)
+        for (var row = 7; row > 4; row--)
         {
-            var oddRow = IsOddRow(y);
-            for (var x = 0; x < 8; x += 2)
-                GeneratePiece(oddRow ? x : x + 1, y, false);
+            var oddRow = IsOdd(row);
+            for (var column = 0; column < 8; column += 2)
+                GeneratePiece(row, oddRow ? column : column + 1, blackPiecePrefab);
         }
     }
 
-    private static bool IsOddRow(int y)
+    private static bool IsOdd(int y)
     {
         var oddRow = y % 2 == 0;
         return oddRow;
     }
 
-    private void GeneratePiece(int x, int y, bool isWhite = true)
+    private void GeneratePiece(int x, int y, GameObject prefab)
     {
-        var prefab = isWhite ? whitePiecesPrefab : blackPiecePrefab;
         var go = Instantiate(prefab, transform, true);
         var piece = go.GetComponent<Piece>();
         _pieces[x, y] = piece;
         MovePiece(piece, x, y);
     }
 
-    private void MovePiece(Piece p, int x, int y)
+    private void MovePiece(Piece piece, int x, int y)
     {
-        var horizontal = new Vector3(piecesHorizontalDistance, 0, 0);
-        var vertical = new Vector3(0, 0, piecesVerticalDistance);
-        p.transform.position = (horizontal * x) + (vertical * y) + boardOffset + piecesOffset;
+        _grid.SetPieceAt(piece, x, y);
     }
     
     // Start is called before the first frame update
     void Start()
     {
+        _grid = boardGrid.GetComponent<BoardGrid>();
         GenerateBoard();
     }
 
-    // Update is called once per frame
     void Update()
     {
+        if (_selection != null)
+        {
+            var selectionRenderer = _selection.GetComponent<MeshRenderer>();
+            selectionRenderer.enabled = false;
+            _selection = null;
+        }
         
+        if (Camera.main is null) return;
+
+        var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if (Physics.Raycast(ray, out var hit))
+        {
+            var selection = hit.transform;
+
+            if (!selection.CompareTag(gridCellTag)) return;
+            
+            var selectionRenderer = selection.GetComponent<MeshRenderer>();
+                
+            if (selectionRenderer != null)
+                selectionRenderer.enabled = true;
+
+            _selection = selection;
+        }
     }
 }
