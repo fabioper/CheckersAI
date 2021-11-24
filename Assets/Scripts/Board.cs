@@ -1,6 +1,4 @@
-using System.Numerics;
 using UnityEngine;
-using Vector3 = UnityEngine.Vector3;
 
 public class Board : MonoBehaviour
 {
@@ -8,9 +6,7 @@ public class Board : MonoBehaviour
     public GameObject whitePiecesPrefab;
     public GameObject blackPiecePrefab;
     public GameObject boardGrid;
-    private BoardGrid _grid;
-    [SerializeField] public string gridCellTag = "BoardCell";
-    private Transform _selection;
+    public BoardGrid grid;
 
     private void GenerateBoard()
     {
@@ -45,40 +41,19 @@ public class Board : MonoBehaviour
 
     private void MovePiece(Piece piece, int x, int y)
     {
-        _grid.SetPieceAt(piece, x, y);
+        grid.SetPieceAt(piece, x, y);
     }
     
     // Start is called before the first frame update
     void Start()
     {
-        _grid = boardGrid.GetComponent<BoardGrid>();
+        InitializeBoardGrid();
         GenerateBoard();
     }
 
-    void Update()
+    private void InitializeBoardGrid()
     {
-        if (_selection != null)
-        {
-            var selectionRenderer = _selection.GetComponent<MeshRenderer>();
-            selectionRenderer.enabled = false;
-            _selection = null;
-        }
-        
-        if (Camera.main is null) return;
-
-        var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out var hit))
-        {
-            var selection = hit.transform;
-
-            if (!selection.CompareTag(gridCellTag)) return;
-            
-            var selectionRenderer = selection.GetComponent<MeshRenderer>();
-                
-            if (selectionRenderer != null)
-                selectionRenderer.enabled = true;
-
-            _selection = selection;
-        }
+        grid = boardGrid.GetComponent<BoardGrid>();
+        grid.InitGrid();
     }
 }

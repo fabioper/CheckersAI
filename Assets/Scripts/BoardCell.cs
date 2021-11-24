@@ -1,18 +1,43 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class BoardCell : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    private Renderer _objectRenderer;
+    public Piece CurrentPiece { get; set; }
+    public BoardMovementControl boardControl;
+
+    private void Start()
     {
-        
+        _objectRenderer = GetComponent<MeshRenderer>();
+        boardControl = BoardMovementControl.Instance;
     }
 
-    // Update is called once per frame
-    void Update()
+    void OnMouseEnter() => _objectRenderer.enabled = true;
+
+    void OnMouseExit() => _objectRenderer.enabled = false;
+
+    void OnMouseOver()
     {
-        
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (boardControl.SelectedCell is null)
+            {
+                boardControl.SelectedCell = this;
+            }
+            else if (CurrentPiece is null)
+            {
+                var piece = boardControl.SelectedCell.CurrentPiece;
+                if (!piece) return;
+                MovePiece(piece);
+                boardControl.SelectedCell.CurrentPiece = null;
+                boardControl.SelectedCell = null;
+            }
+        }
+    }
+
+    public void MovePiece(Piece piece)
+    {
+        CurrentPiece = piece;
+        piece.transform.position = transform.position;
     }
 }

@@ -1,11 +1,11 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BoardGrid : MonoBehaviour
 {
     private readonly BoardCell[,] _cells = new BoardCell[8, 8];
     
-    // Start is called before the first frame update
-    void Start()
+    public void InitGrid()
     {
         var cellPosition = 0;
 
@@ -30,6 +30,6 @@ public class BoardGrid : MonoBehaviour
     public void SetPieceAt(Piece piece, int x, int y)
     {
         var cell = _cells[x, y];
-        piece.transform.position = cell.transform.position;
+        cell.MovePiece(piece);
     }
 }
