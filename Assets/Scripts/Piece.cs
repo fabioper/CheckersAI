@@ -27,25 +27,25 @@ public class Piece : MonoBehaviour
     {
         var possibleMoves = new List<BoardCell>();
 
-        var nextRow = CurrentCell.CellCoordinates.Row + Direction;
+        var row = CurrentCell.CellCoordinates.Row;
         var column = CurrentCell.CellCoordinates.Column;
         
-        if (IsLastRow(nextRow))
+        if (IsLastRow(row))
             return possibleMoves;
 
-        possibleMoves.AddRange(GetLeftPossibleMoves(column, nextRow));
-        possibleMoves.AddRange(GetRightPossibleMoves(column, nextRow));
+        possibleMoves.AddRange(GetLeftPossibleMoves(column, row));
+        possibleMoves.AddRange(GetRightPossibleMoves(column, row));
 
         return possibleMoves;
     }
 
-    private IEnumerable<BoardCell> GetRightPossibleMoves(int column, int nextRow)
+    private IEnumerable<BoardCell> GetRightPossibleMoves(int column, int row)
     {
         var possibleMoves = new List<BoardCell>();
 
         if (column >= 7) return possibleMoves;
         
-        var rightColumn = BoardGrid.Instance.Cells[nextRow, column + 1];
+        var rightColumn = BoardGrid.Instance.Cells[row + Direction, column + 1];
         if (!rightColumn.IsEmpty()) return possibleMoves;
         
         possibleMoves.Add(rightColumn);
@@ -53,13 +53,13 @@ public class Piece : MonoBehaviour
         return possibleMoves;
     }
 
-    private IEnumerable<BoardCell> GetLeftPossibleMoves(int column, int nextRow)
+    private IEnumerable<BoardCell> GetLeftPossibleMoves(int column, int row)
     {
         var possibleMoves = new List<BoardCell>();
 
         if (column <= 0) return possibleMoves;
         
-        var leftColumn = BoardGrid.Instance.Cells[nextRow, column - 1];
+        var leftColumn = BoardGrid.Instance.Cells[row + Direction, column - 1];
         if (leftColumn.IsEmpty())
             possibleMoves.Add(leftColumn);
 
