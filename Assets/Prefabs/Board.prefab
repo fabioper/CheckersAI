@@ -116,4 +116,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   whitePiecesPrefab: {fileID: 1000013599098832, guid: 68360d99cc8a46c4daf06afcdfc07ff7, type: 3}
   blackPiecePrefab: {fileID: 1000013841395642, guid: 5f0a1bfc6c395274ab06a3a02cf9bc4f, type: 3}
-  boardOffset: {x: -4, y: 0, z: 4}
+  boardGrid: {fileID: 3633185355910167563, guid: dcface83bc075294ab87f2b2223203da, type: 3}

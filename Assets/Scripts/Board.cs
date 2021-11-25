@@ -2,11 +2,10 @@ using UnityEngine;
 
 public class Board : MonoBehaviour
 {
-    private readonly Piece[,] _pieces = new Piece[8, 8];
     public GameObject whitePiecesPrefab;
     public GameObject blackPiecePrefab;
     public GameObject boardGrid;
-    public BoardGrid grid;
+    private BoardGrid _grid;
 
     private void GenerateBoard()
     {
@@ -14,16 +13,19 @@ public class Board : MonoBehaviour
         {
             var oddRow = IsOdd(row);
             for (var column = 0; column < 8; column += 2)
-                GeneratePiece(row, oddRow ? column : column + 1, whitePiecesPrefab);
+                GeneratePiece(row, oddRow ? column : column + 1, TeamColor.White);
         }
         
         for (var row = 7; row > 4; row--)
         {
             var oddRow = IsOdd(row);
             for (var column = 0; column < 8; column += 2)
-                GeneratePiece(row, oddRow ? column : column + 1, blackPiecePrefab);
+                GeneratePiece(row, oddRow ? column : column + 1, TeamColor.Black);
         }
     }
+
+    private GameObject GetPrefabFor(TeamColor teamColor)
+        => teamColor == TeamColor.White ? whitePiecesPrefab : blackPiecePrefab;
 
     private static bool IsOdd(int y)
     {
@@ -31,20 +33,19 @@ public class Board : MonoBehaviour
         return oddRow;
     }
 
-    private void GeneratePiece(int x, int y, GameObject prefab)
+    private void GeneratePiece(int x, int y, TeamColor teamColor)
     {
-        var go = Instantiate(prefab, transform, true);
+        var go = Instantiate(GetPrefabFor(teamColor), transform, true);
         var piece = go.GetComponent<Piece>();
-        _pieces[x, y] = piece;
+        piece.TeamColor = teamColor;
         MovePiece(piece, x, y);
     }
 
     private void MovePiece(Piece piece, int x, int y)
     {
-        grid.SetPieceAt(piece, x, y);
+        _grid.SetPieceAt(piece, x, y);
     }
     
-    // Start is called before the first frame update
     void Start()
     {
         InitializeBoardGrid();
@@ -53,7 +54,7 @@ public class Board : MonoBehaviour
 
     private void InitializeBoardGrid()
     {
-        grid = boardGrid.GetComponent<BoardGrid>();
-        grid.InitGrid();
+        _grid = boardGrid.GetComponent<BoardGrid>();
+        _grid.InitGrid();
     }
 }

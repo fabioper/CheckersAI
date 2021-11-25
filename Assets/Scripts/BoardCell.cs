@@ -1,43 +1,57 @@
+using System;
 using UnityEngine;
 
 public class BoardCell : MonoBehaviour
 {
-    private Renderer _objectRenderer;
+    [SerializeField] public Material selectedMaterial;
+    [SerializeField] public Material defaultMaterial;
+    
     public Piece CurrentPiece { get; set; }
-    public BoardMovementControl boardControl;
+    public CellCoordinates CellCoordinates { get; set; }
+
+    private Renderer _objectRenderer;
+    private BoardMovementControl _boardControl;
 
     private void Start()
     {
         _objectRenderer = GetComponent<MeshRenderer>();
-        boardControl = BoardMovementControl.Instance;
+        _boardControl = BoardMovementControl.Instance;
     }
 
-    void OnMouseEnter() => _objectRenderer.enabled = true;
+    private void OnMouseEnter()
+    {
+        _objectRenderer.material = selectedMaterial;
+    }
 
-    void OnMouseExit() => _objectRenderer.enabled = false;
+    private void OnMouseExit()
+    {
+        _objectRenderer.material = defaultMaterial;
+    }
 
     void OnMouseOver()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            if (boardControl.SelectedCell is null)
+            if (_boardControl.SelectedCell is null)
             {
-                boardControl.SelectedCell = this;
+                if (CurrentPiece != null)
+                {
+                    _boardControl.SelectedCell = this;
+                }
             }
-            else if (CurrentPiece is null)
+            else
             {
-                var piece = boardControl.SelectedCell.CurrentPiece;
-                if (!piece) return;
-                MovePiece(piece);
-                boardControl.SelectedCell.CurrentPiece = null;
-                boardControl.SelectedCell = null;
+                var selectedCellPiece = _boardControl.SelectedCell.CurrentPiece;
+                if (CurrentPiece != null || !selectedCellPiece) return;
+                selectedCellPiece.MoveTo(this);
+                _boardControl.SelectedCell.CurrentPiece = null;
+                _boardControl.SelectedCell = null;
             }
         }
     }
 
-    public void MovePiece(Piece piece)
+    private void Update()
     {
-        CurrentPiece = piece;
-        piece.transform.position = transform.position;
+        _objectRenderer.material = _boardControl.SelectedCell == this ? selectedMaterial : defaultMaterial;
     }
 }

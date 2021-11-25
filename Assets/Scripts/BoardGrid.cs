@@ -14,6 +14,7 @@ public class BoardGrid : MonoBehaviour
             for (var y = 0; y < 8; y++)
             {
                 var boardCell = GetBoardCellFromChildAt(cellPosition);
+                boardCell.CellCoordinates = new CellCoordinates(x, y);
                 _cells[x, y] = boardCell;
                 cellPosition++;
             }
@@ -29,7 +30,6 @@ public class BoardGrid : MonoBehaviour
 
     public void SetPieceAt(Piece piece, int x, int y)
     {
-        var cell = _cells[x, y];
-        cell.MovePiece(piece);
+        piece.MoveTo(_cells[x, y]);
     }
 }

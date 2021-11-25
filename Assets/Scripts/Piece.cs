@@ -1,18 +1,15 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Piece : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public TeamColor TeamColor { get; set; }
 
-    // Update is called once per frame
-    void Update()
+    public void MoveTo(BoardCell cell)
     {
-        
+        if (cell.CurrentPiece != null)
+            return;
+
+        cell.CurrentPiece = this;
+        transform.position = cell.transform.position;
     }
 }
