@@ -29,19 +29,19 @@ public class Piece : MonoBehaviour
         var nextRow = CurrentCell.CellCoordinates.Row + direction;
         var column = CurrentCell.CellCoordinates.Column;
         
-        if (nextRow > 7)
+        if ((direction > 0 && nextRow > 7) || (direction < 0 && nextRow < 0))
             return possibleMoves;
 
         if (column > 0)
         {
-            var leftColumn = BoardGrid.Instance.Cells[nextRow, column - direction];
+            var leftColumn = BoardGrid.Instance.Cells[nextRow, column - 1];
             if (leftColumn.IsEmpty())
                 possibleMoves.Add(leftColumn);
         }
 
         if (column < 7)
         {
-            var rightColumn = BoardGrid.Instance.Cells[nextRow, column + direction];
+            var rightColumn = BoardGrid.Instance.Cells[nextRow, column + 1];
             if (rightColumn.IsEmpty())
                 possibleMoves.Add(rightColumn);
         }
