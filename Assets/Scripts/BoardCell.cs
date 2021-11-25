@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public class BoardCell : MonoBehaviour
@@ -41,8 +40,16 @@ public class BoardCell : MonoBehaviour
             }
             else
             {
+                if (_boardControl.SelectedCell == this)
+                {
+                    _boardControl.SelectedCell = null;
+                    return;
+                }
                 var selectedCellPiece = _boardControl.SelectedCell.CurrentPiece;
-                if (CurrentPiece != null || !selectedCellPiece) return;
+                
+                if (CurrentPiece != null || !selectedCellPiece || !selectedCellPiece.CanMoveTo(this))
+                    return;
+                
                 selectedCellPiece.MoveTo(this);
                 _boardControl.SelectedCell.CurrentPiece = null;
                 _boardControl.SelectedCell = null;
@@ -53,5 +60,21 @@ public class BoardCell : MonoBehaviour
     private void Update()
     {
         _objectRenderer.material = _boardControl.SelectedCell == this ? selectedMaterial : defaultMaterial;
+
+        if (_boardControl.SelectedCell != null && _boardControl.SelectedCell != this)
+        {
+            var selectedPiece = _boardControl.SelectedCell.CurrentPiece;
+            var possibleMoves = selectedPiece.GetPossibleMoves();
+            
+            if (possibleMoves.Contains(this))
+            {
+                _objectRenderer.material = selectedMaterial;
+            }
+        }
+    }
+
+    public bool IsEmpty()
+    {
+        return CurrentPiece == null;
     }
 }

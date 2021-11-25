@@ -1,9 +1,14 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class BoardGrid : MonoBehaviour
 {
-    private readonly BoardCell[,] _cells = new BoardCell[8, 8];
+    public BoardCell[,] Cells = new BoardCell[8, 8];
+    public static BoardGrid Instance { get; private set; }
+    
+    private void Awake()
+    {
+        Instance = this;
+    }
     
     public void InitGrid()
     {
@@ -15,7 +20,7 @@ public class BoardGrid : MonoBehaviour
             {
                 var boardCell = GetBoardCellFromChildAt(cellPosition);
                 boardCell.CellCoordinates = new CellCoordinates(x, y);
-                _cells[x, y] = boardCell;
+                Cells[x, y] = boardCell;
                 cellPosition++;
             }
         }
@@ -30,6 +35,6 @@ public class BoardGrid : MonoBehaviour
 
     public void SetPieceAt(Piece piece, int x, int y)
     {
-        piece.MoveTo(_cells[x, y]);
+        piece.MoveTo(Cells[x, y]);
     }
 }

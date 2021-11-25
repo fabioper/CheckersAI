@@ -4,8 +4,6 @@ public class Board : MonoBehaviour
 {
     public GameObject whitePiecesPrefab;
     public GameObject blackPiecePrefab;
-    public GameObject boardGrid;
-    private BoardGrid _grid;
 
     private void GenerateBoard()
     {
@@ -43,7 +41,7 @@ public class Board : MonoBehaviour
 
     private void MovePiece(Piece piece, int x, int y)
     {
-        _grid.SetPieceAt(piece, x, y);
+        BoardGrid.Instance.SetPieceAt(piece, x, y);
     }
     
     void Start()
@@ -54,7 +52,6 @@ public class Board : MonoBehaviour
 
     private void InitializeBoardGrid()
     {
-        _grid = boardGrid.GetComponent<BoardGrid>();
-        _grid.InitGrid();
+        BoardGrid.Instance.InitGrid();
     }
 }
