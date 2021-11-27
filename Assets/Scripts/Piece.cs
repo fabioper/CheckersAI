@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Piece : MonoBehaviour
@@ -29,9 +30,6 @@ public class Piece : MonoBehaviour
 
         var row = CurrentCell.CellCoordinates.Row;
         var column = CurrentCell.CellCoordinates.Column;
-        
-        if (IsLastRow(row))
-            return possibleMoves;
 
         possibleMoves.AddRange(GetLeftPossibleMoves(column, row));
         possibleMoves.AddRange(GetRightPossibleMoves(column, row));
@@ -43,33 +41,78 @@ public class Piece : MonoBehaviour
     {
         var possibleMoves = new List<BoardCell>();
 
-        if (column >= 7) return possibleMoves;
-        
-        var rightColumn = BoardGrid.Instance.Cells[row + Direction, column + 1];
-        if (!rightColumn.IsEmpty()) return possibleMoves;
-        
-        possibleMoves.Add(rightColumn);
+        var currentCell = BoardGrid.Instance.GetCellAt(row, column);
+        var nextColumn = BoardGrid.Instance.GetCellAt(row + Direction, column + 1);
 
-        return possibleMoves;
-    }
+        if (nextColumn is null)
+            return possibleMoves;
 
-    private IEnumerable<BoardCell> GetLeftPossibleMoves(int column, int row)
-    {
-        var possibleMoves = new List<BoardCell>();
+        if (!nextColumn.IsEmpty())
+        {
+            if (!CanAttack(nextColumn.CurrentPiece, out var attackingDestination))
+                return possibleMoves;
 
-        if (column <= 0) return possibleMoves;
-        
-        var leftColumn = BoardGrid.Instance.Cells[row + Direction, column - 1];
-        if (leftColumn.IsEmpty())
-            possibleMoves.Add(leftColumn);
+            possibleMoves.Add(attackingDestination);
+            return possibleMoves;
+        }
+
+        possibleMoves.Add(nextColumn);
 
         return possibleMoves;
     }
     
-    private bool IsLastRow(int nextRow)
+    private IEnumerable<BoardCell> GetLeftPossibleMoves(int column, int row)
     {
-        var whiteLastRow = IsTeam(TeamColor.White) && nextRow > 7;
-        var blackLastRow = IsTeam(TeamColor.Black) && nextRow < 0;
-        return whiteLastRow || blackLastRow;
+        var possibleMoves = new List<BoardCell>();
+
+        var currentCell = BoardGrid.Instance.GetCellAt(row, column);
+        var nextColumn = BoardGrid.Instance.GetCellAt(row + Direction, column - 1);
+
+        if (nextColumn is null)
+            return possibleMoves;
+
+        if (!nextColumn.IsEmpty())
+        {
+            if (!CanAttack(nextColumn.CurrentPiece, out var attackingDestination))
+                return possibleMoves;
+
+            possibleMoves.Add(attackingDestination);
+            return possibleMoves;
+        }
+
+        possibleMoves.Add(nextColumn);
+
+        return possibleMoves;
     }
+
+    private bool CanAttack(Piece piece, out BoardCell attackDestination)
+    {
+        attackDestination = null;
+        
+        if (!IsEnemy(piece))
+            return false;
+
+        var nextCell = GetNextCellFrom(piece);
+
+        if (nextCell == null || !nextCell.IsEmpty())
+            return false;
+
+        attackDestination = nextCell;
+        return true;
+    }
+
+    private BoardCell GetNextCellFrom(Piece piece)
+    {
+        var enemyPosition = piece.CurrentCell.CellCoordinates;
+        var currentPosition = CurrentCell.CellCoordinates;
+
+        var columnDirection = enemyPosition.Column - currentPosition.Column;
+        var nextColumn = enemyPosition.Column + columnDirection;
+        var nextRow = enemyPosition.Row + Direction;
+
+        return BoardGrid.Instance.GetCellAt(nextRow, nextColumn);
+    }
+
+    private bool IsEnemy(Piece piece)
+        => piece.TeamColor != TeamColor;
 }

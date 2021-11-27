@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class BoardGrid : MonoBehaviour
@@ -36,5 +37,22 @@ public class BoardGrid : MonoBehaviour
     public void SetPieceAt(Piece piece, int x, int y)
     {
         piece.MoveTo(Cells[x, y]);
+    }
+
+    public BoardCell GetCellAt(int row, int column)
+    {
+        BoardCell foundCell = null;
+        
+        try
+        {
+            foundCell = Cells[row, column];
+            return foundCell;
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+
+        return foundCell;
     }
 }
