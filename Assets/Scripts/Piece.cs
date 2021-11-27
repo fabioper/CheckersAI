@@ -31,42 +31,18 @@ public class Piece : MonoBehaviour
         var row = CurrentCell.CellCoordinates.Row;
         var column = CurrentCell.CellCoordinates.Column;
 
-        possibleMoves.AddRange(GetLeftPossibleMoves(column, row));
-        possibleMoves.AddRange(GetRightPossibleMoves(column, row));
+        possibleMoves.AddRange(GetPossibleMoves(column, row, -1));
+        possibleMoves.AddRange(GetPossibleMoves(column, row, 1));
 
         return possibleMoves;
     }
 
-    private IEnumerable<BoardCell> GetRightPossibleMoves(int column, int row)
+    private IEnumerable<BoardCell> GetPossibleMoves(int column, int row, int columnDirection)
     {
         var possibleMoves = new List<BoardCell>();
 
         var currentCell = BoardGrid.Instance.GetCellAt(row, column);
-        var nextColumn = BoardGrid.Instance.GetCellAt(row + Direction, column + 1);
-
-        if (nextColumn is null)
-            return possibleMoves;
-
-        if (!nextColumn.IsEmpty())
-        {
-            if (!CanAttack(nextColumn.CurrentPiece, out var attackingDestination))
-                return possibleMoves;
-
-            possibleMoves.Add(attackingDestination);
-            return possibleMoves;
-        }
-
-        possibleMoves.Add(nextColumn);
-
-        return possibleMoves;
-    }
-    
-    private IEnumerable<BoardCell> GetLeftPossibleMoves(int column, int row)
-    {
-        var possibleMoves = new List<BoardCell>();
-
-        var currentCell = BoardGrid.Instance.GetCellAt(row, column);
-        var nextColumn = BoardGrid.Instance.GetCellAt(row + Direction, column - 1);
+        var nextColumn = BoardGrid.Instance.GetCellAt(row + Direction, column + columnDirection);
 
         if (nextColumn is null)
             return possibleMoves;

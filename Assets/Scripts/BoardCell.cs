@@ -66,10 +66,8 @@ public class BoardCell : MonoBehaviour
             var selectedPiece = _boardControl.SelectedCell.CurrentPiece;
             var possibleMoves = selectedPiece.GetPossibleMoves();
             
-            if (possibleMoves.Contains(this))
-            {
+            if (selectedPiece.CanMoveTo(this))
                 _objectRenderer.material = selectedMaterial;
-            }
         }
     }
 
