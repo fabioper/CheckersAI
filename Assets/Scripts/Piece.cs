@@ -89,16 +89,14 @@ public class Piece : MonoBehaviour
     {
         attackDestination = null;
         
-        if (!IsEnemy(piece))
-            return false;
-
         var nextCell = GetNextCellFrom(piece);
 
-        if (nextCell == null || !nextCell.IsEmpty())
+        if (!IsEnemy(piece) || nextCell == null || !nextCell.IsEmpty())
             return false;
 
         attackDestination = nextCell;
         return true;
+
     }
 
     private BoardCell GetNextCellFrom(Piece piece)
