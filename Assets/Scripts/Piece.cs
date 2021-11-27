@@ -47,16 +47,17 @@ public class Piece : MonoBehaviour
         if (nextColumn is null)
             return possibleMoves;
 
-        if (!nextColumn.IsEmpty())
+        if (nextColumn.IsEmpty())
         {
-            if (!CanAttack(nextColumn.CurrentPiece, out var attackingDestination))
-                return possibleMoves;
+            possibleMoves.Add(nextColumn);
 
-            possibleMoves.Add(attackingDestination);
             return possibleMoves;
         }
 
-        possibleMoves.Add(nextColumn);
+        if (CanAttack(nextColumn.CurrentPiece, out var attackingDestination))
+        {
+            possibleMoves.Add(attackingDestination);
+        }
 
         return possibleMoves;
     }
