@@ -49,24 +49,32 @@ public class Piece : MonoBehaviour
 
         if (nextColumn.IsEmpty())
         {
-            possibleMoves.Add(nextColumn);
-
+            possibleMoves.Add(!currentCell.IsEmpty() ? nextColumn : currentCell);
             return possibleMoves;
         }
 
-        if (CanAttack(nextColumn.CurrentPiece, out var attackingDestination))
+        var canAttack = CanAttack(nextColumn.CurrentPiece, out var attackingDestination, currentCell.CellCoordinates.Column);
+        if (canAttack)
         {
-            possibleMoves.Add(attackingDestination);
+            var sequence = GetPossibleMoves(attackingDestination.CellCoordinates.Column,
+                attackingDestination.CellCoordinates.Row, 1).ToList();
+
+            if (!sequence.Any())
+                possibleMoves.Add(attackingDestination);
+            
+            possibleMoves.AddRange(sequence);
+            return possibleMoves;
         }
 
+        possibleMoves.Add(currentCell);
         return possibleMoves;
     }
 
-    private bool CanAttack(Piece piece, out BoardCell attackDestination)
+    private bool CanAttack(Piece piece, out BoardCell attackDestination, int fromColumn = 0)
     {
         attackDestination = null;
         
-        var nextCell = GetNextCellFrom(piece);
+        var nextCell = GetNextCellFrom(piece, fromColumn);
 
         if (!IsEnemy(piece) || nextCell == null || !nextCell.IsEmpty())
             return false;
@@ -76,12 +84,12 @@ public class Piece : MonoBehaviour
 
     }
 
-    private BoardCell GetNextCellFrom(Piece piece)
+    private BoardCell GetNextCellFrom(Piece piece, int fromColumn = 0)
     {
         var enemyPosition = piece.CurrentCell.CellCoordinates;
-        var currentPosition = CurrentCell.CellCoordinates;
+        var currentPosition = fromColumn == 0 ? CurrentCell.CellCoordinates.Column : fromColumn;
 
-        var columnDirection = enemyPosition.Column - currentPosition.Column;
+        var columnDirection = enemyPosition.Column - currentPosition;
         var nextColumn = enemyPosition.Column + columnDirection;
         var nextRow = enemyPosition.Row + Direction;
 
