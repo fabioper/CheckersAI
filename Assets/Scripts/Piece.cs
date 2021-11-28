@@ -53,16 +53,14 @@ public class Piece : MonoBehaviour
             return possibleMoves;
         }
 
-        var canAttack = CanAttack(nextColumn.CurrentPiece, out var attackingDestination, currentCell.CellCoordinates.Column);
-        if (canAttack)
+        if (CanAttack(nextColumn.CurrentPiece, currentCell.CellCoordinates.Column, out var attackingDestination))
         {
-            var sequence = GetPossibleMoves(attackingDestination.CellCoordinates.Column,
-                attackingDestination.CellCoordinates.Row, 1).ToList();
+            var subsequentAttacks = GetSubsequentAttacks(attackingDestination);
 
-            if (!sequence.Any())
+            if (!subsequentAttacks.Any())
                 possibleMoves.Add(attackingDestination);
             
-            possibleMoves.AddRange(sequence);
+            possibleMoves.AddRange(subsequentAttacks);
             return possibleMoves;
         }
 
@@ -70,7 +68,21 @@ public class Piece : MonoBehaviour
         return possibleMoves;
     }
 
-    private bool CanAttack(Piece piece, out BoardCell attackDestination, int fromColumn = 0)
+    private List<BoardCell> GetSubsequentAttacks(BoardCell attackingDestination)
+    {
+        var subsequentAttacks = new List<BoardCell>();
+        
+        subsequentAttacks.AddRange(
+            GetPossibleMoves(attackingDestination.CellCoordinates.Column,
+            attackingDestination.CellCoordinates.Row, 1));
+        subsequentAttacks.AddRange(
+            GetPossibleMoves(attackingDestination.CellCoordinates.Column,
+                attackingDestination.CellCoordinates.Row, -1));
+        
+        return subsequentAttacks;
+    }
+
+    private bool CanAttack(Piece piece, int fromColumn, out BoardCell attackDestination)
     {
         attackDestination = null;
         
