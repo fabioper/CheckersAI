@@ -21,12 +21,12 @@ public class Piece : MonoBehaviour
     public bool CanMoveTo(BoardCell cell)
     {
         var possibleMoves = GetPossibleMoves();
-        return possibleMoves.Contains(cell);
+        return possibleMoves.Select(x => x.Destination).Contains(cell);
     }
 
-    public List<BoardCell> GetPossibleMoves()
+    public List<PieceMovement> GetPossibleMoves()
     {
-        var possibleMoves = new List<BoardCell>();
+        var possibleMoves = new List<PieceMovement>();
 
         var row = CurrentCell.CellCoordinates.Row;
         var column = CurrentCell.CellCoordinates.Column;
@@ -37,9 +37,9 @@ public class Piece : MonoBehaviour
         return possibleMoves;
     }
 
-    private IEnumerable<BoardCell> GetPossibleMoves(int column, int row, int columnDirection)
+    private IEnumerable<PieceMovement> GetPossibleMoves(int column, int row, int columnDirection)
     {
-        var possibleMoves = new List<BoardCell>();
+        var possibleMoves = new List<PieceMovement>();
 
         var currentCell = BoardGrid.Instance.GetCellAt(row, column);
         var nextColumn = BoardGrid.Instance.GetCellAt(row + Direction, column + columnDirection);
@@ -47,51 +47,86 @@ public class Piece : MonoBehaviour
         if (nextColumn is null)
             return possibleMoves;
 
-        if (nextColumn.IsEmpty())
+        if (!nextColumn.IsEmpty())
         {
-            possibleMoves.Add(!currentCell.IsEmpty() ? nextColumn : currentCell);
+            if (CanAttack(nextColumn.CurrentPiece, currentCell, out var attackingDestination))
+            {
+                var subsequentAttacks = GetSubsequentAttacks(attackingDestination);
+                possibleMoves.AddRange(subsequentAttacks);
+                return possibleMoves;
+            }
+
+            possibleMoves.Add(new PieceMovement
+            {
+                Start = CurrentCell,
+                Destination = currentCell
+            });
             return possibleMoves;
         }
 
-        if (CanAttack(nextColumn.CurrentPiece, currentCell.CellCoordinates.Column, out var attackingDestination))
+        possibleMoves.Add(!currentCell.IsEmpty() ? new PieceMovement
         {
-            var subsequentAttacks = GetSubsequentAttacks(attackingDestination);
-
-            if (!subsequentAttacks.Any())
-                possibleMoves.Add(attackingDestination);
-            
-            possibleMoves.AddRange(subsequentAttacks);
-            return possibleMoves;
-        }
-
-        possibleMoves.Add(currentCell);
+            Start = CurrentCell,
+            Destination = nextColumn
+        } : new PieceMovement
+        {
+            Start = CurrentCell,
+            Destination = currentCell
+        });
         return possibleMoves;
     }
 
-    private List<BoardCell> GetSubsequentAttacks(BoardCell attackingDestination)
+    private IEnumerable<PieceMovement> GetSubsequentAttacks(PieceMovement attackingDestination)
     {
-        var subsequentAttacks = new List<BoardCell>();
+        var subsequentAttacks = new List<PieceMovement>();
+
+        var rightAttacks = GetPossibleMoves(attackingDestination.Destination.CellCoordinates.Column,
+            attackingDestination.Destination.CellCoordinates.Row, 1).ToList();
+
+
+        if (rightAttacks.Any())
+        {
+            var destination = rightAttacks.Last().Destination;
+            var attackedPieces = rightAttacks.SelectMany(x => x.AttackedPieces).ToList();
+            subsequentAttacks.Add(new PieceMovement
+            {
+                Start = attackingDestination.Start,
+                Destination = destination,
+                AttackedPieces = attackedPieces
+            });
+        }
+
+        var leftAttacks = GetPossibleMoves(attackingDestination.Destination.CellCoordinates.Column,
+            attackingDestination.Destination.CellCoordinates.Row, -1).ToList();
         
-        subsequentAttacks.AddRange(
-            GetPossibleMoves(attackingDestination.CellCoordinates.Column,
-            attackingDestination.CellCoordinates.Row, 1));
-        subsequentAttacks.AddRange(
-            GetPossibleMoves(attackingDestination.CellCoordinates.Column,
-                attackingDestination.CellCoordinates.Row, -1));
+        if (leftAttacks.Any())
+        {
+            subsequentAttacks.Add(new PieceMovement
+            {
+                Start = attackingDestination.Start,
+                Destination = leftAttacks.Last().Destination,
+                AttackedPieces = leftAttacks.SelectMany(x => x.AttackedPieces).ToList()
+            });
+        }
         
         return subsequentAttacks;
     }
 
-    private bool CanAttack(Piece piece, int fromColumn, out BoardCell attackDestination)
+    private bool CanAttack(Piece piece, BoardCell startCell, out PieceMovement attackDestination)
     {
         attackDestination = null;
         
-        var nextCell = GetNextCellFrom(piece, fromColumn);
+        var nextCell = GetNextCellFrom(piece, startCell.CellCoordinates.Column);
 
         if (!IsEnemy(piece) || nextCell == null || !nextCell.IsEmpty())
             return false;
 
-        attackDestination = nextCell;
+        attackDestination = new PieceMovement
+        {
+            Start = startCell,
+            Destination = nextCell,
+            AttackedPieces = new List<Piece> { piece } 
+        };
         return true;
 
     }
