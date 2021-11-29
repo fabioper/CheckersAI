@@ -2,12 +2,7 @@ using System.Collections.Generic;
 
 public class PieceMovement
 {
-    public BoardCell Start { get; set; }
-    public BoardCell Destination { get; set; }
-    public List<Piece> AttackedPieces { get; set; }
+    public List<BoardCell> Path { get; set; }
 
-    public PieceMovement()
-    {
-        AttackedPieces = new List<Piece>();
-    }
+    public PieceMovement() => Path = new List<BoardCell>();
 }
