@@ -32,14 +32,17 @@ public class BoardCell : MonoBehaviour
         {
             if (!BoardGrid.Instance.HasSelection())
             {
-                if (CurrentPiece == null) return;
-                BoardGrid.Instance.SelectedCell = this;
+                if (CurrentPiece == null)
+                    return;
+
+                if (GameController.Instance.IsTurn(CurrentPiece.TeamColor))
+                    BoardGrid.Instance.SelectedCell = this;
             }
             else
             {
                 if (DeselectIfAlreadySelected()) return;
-
                 var selectedCellPiece = BoardGrid.Instance.SelectedCell.CurrentPiece;
+
                 if (CurrentPiece != null || !selectedCellPiece)
                     return;
 
@@ -69,9 +72,11 @@ public class BoardCell : MonoBehaviour
         if (BoardGrid.Instance.SelectedCell != null && BoardGrid.Instance.SelectedCell != this)
         {
             var selectedPiece = BoardGrid.Instance.SelectedCell.CurrentPiece;
-            
-            if (selectedPiece.CanMoveTo(this, out _))
+
+            if (selectedPiece.CanMoveTo(this, out var moves))
+            {
                 _objectRenderer.material = selectedMaterial;
+            }
         }
     }
 

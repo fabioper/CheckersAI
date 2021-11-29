@@ -19,10 +19,19 @@ public class Piece : MonoBehaviour
     public void MoveTo(PieceMovement move)
     {
         SetPosition(move.Destination);
-        move.AttackedPieces.ForEach(piece => piece.Remove());
+
+        if (move.AttackedPieces.Any())
+            move.AttackedPieces.ForEach(piece => piece.Remove());
+
+        EventsStore.Instance.NotifyEvent(GameEventType.MoveMade);
     }
 
-    private void Remove() => Destroy(gameObject);
+    private void Remove()
+    {
+        Destroy(gameObject);
+        GameController.Instance.DecreaseCountFor(TeamColor);
+        EventsStore.Instance.NotifyEvent(GameEventType.PieceAttacked);
+    }
 
     public bool CanMoveTo(BoardCell cell, out IEnumerable<PieceMovement> foundMoves)
     {
