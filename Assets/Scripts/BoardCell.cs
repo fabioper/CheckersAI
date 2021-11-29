@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 public class BoardCell : MonoBehaviour
@@ -9,12 +10,10 @@ public class BoardCell : MonoBehaviour
     public CellCoordinates CellCoordinates { get; set; }
 
     private Renderer _objectRenderer;
-    private BoardMovementControl _boardControl;
 
     private void Start()
     {
         _objectRenderer = GetComponent<MeshRenderer>();
-        _boardControl = BoardMovementControl.Instance;
     }
 
     private void OnMouseEnter()
@@ -31,41 +30,47 @@ public class BoardCell : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            if (_boardControl.SelectedCell is null)
+            if (!BoardGrid.Instance.HasSelection())
             {
-                if (CurrentPiece != null)
-                {
-                    _boardControl.SelectedCell = this;
-                }
+                if (CurrentPiece == null) return;
+                BoardGrid.Instance.SelectedCell = this;
             }
             else
             {
-                if (_boardControl.SelectedCell == this)
-                {
-                    _boardControl.SelectedCell = null;
+                if (DeselectIfAlreadySelected()) return;
+
+                var selectedCellPiece = BoardGrid.Instance.SelectedCell.CurrentPiece;
+                if (CurrentPiece != null || !selectedCellPiece)
                     return;
-                }
-                var selectedCellPiece = _boardControl.SelectedCell.CurrentPiece;
-                
-                if (CurrentPiece != null || !selectedCellPiece || !selectedCellPiece.CanMoveTo(this))
+
+                if (!selectedCellPiece.CanMoveTo(this, out var moves))
                     return;
-                
-                selectedCellPiece.MoveTo(this);
-                _boardControl.SelectedCell.CurrentPiece = null;
-                _boardControl.SelectedCell = null;
+
+                selectedCellPiece.MoveTo(moves.FirstOrDefault());
+                BoardGrid.Instance.SelectedCell.CurrentPiece = null;
+                BoardGrid.Instance.SelectedCell = null;
             }
         }
     }
 
+    private bool DeselectIfAlreadySelected()
+    {
+        if (!BoardGrid.Instance.IsSelected(this))
+            return false;
+
+        BoardGrid.Instance.SelectedCell = null;
+        return true;
+    }
+
     private void Update()
     {
-        _objectRenderer.material = _boardControl.SelectedCell == this ? selectedMaterial : defaultMaterial;
+        _objectRenderer.material = BoardGrid.Instance.SelectedCell == this ? selectedMaterial : defaultMaterial;
 
-        if (_boardControl.SelectedCell != null && _boardControl.SelectedCell != this)
+        if (BoardGrid.Instance.SelectedCell != null && BoardGrid.Instance.SelectedCell != this)
         {
-            var selectedPiece = _boardControl.SelectedCell.CurrentPiece;
+            var selectedPiece = BoardGrid.Instance.SelectedCell.CurrentPiece;
             
-            if (selectedPiece.CanMoveTo(this))
+            if (selectedPiece.CanMoveTo(this, out _))
                 _objectRenderer.material = selectedMaterial;
         }
     }

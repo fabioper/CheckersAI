@@ -4,6 +4,8 @@ using UnityEngine;
 public class BoardGrid : MonoBehaviour
 {
     public BoardCell[,] Cells = new BoardCell[8, 8];
+    public BoardCell SelectedCell { get; set; }
+    
     public static BoardGrid Instance { get; private set; }
     
     private void Awake()
@@ -34,10 +36,7 @@ public class BoardGrid : MonoBehaviour
         return cell;
     }
 
-    public void SetPieceAt(Piece piece, int x, int y)
-    {
-        piece.MoveTo(Cells[x, y]);
-    }
+    public void SetPieceAt(Piece piece, int x, int y) => piece.SetPosition(Cells[x, y]);
 
     public BoardCell GetCellAt(int row, int column)
     {
@@ -55,4 +54,8 @@ public class BoardGrid : MonoBehaviour
 
         return foundCell;
     }
+    
+    public bool HasSelection() => SelectedCell != null;
+
+    public bool IsSelected(BoardCell boardCell) => SelectedCell == boardCell;
 }

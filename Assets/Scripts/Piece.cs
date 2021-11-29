@@ -7,126 +7,88 @@ public class Piece : MonoBehaviour
     public TeamColor TeamColor { get; set; }
     public BoardCell CurrentCell { get; set; }
     
-    private bool IsTeam(TeamColor teamColor) => TeamColor == teamColor;
-
     private int Direction => TeamColor == TeamColor.White ? 1 : -1;
 
-    public void MoveTo(BoardCell cell)
+    public void SetPosition(BoardCell cell)
     {
         CurrentCell = cell;
-        cell.CurrentPiece = this;
-        transform.position = cell.transform.position;
+        CurrentCell.CurrentPiece = this;
+        transform.position = CurrentCell.transform.position;
+    }
+    
+    public void MoveTo(PieceMovement move)
+    {
+        SetPosition(move.Destination);
+        move.AttackedPieces.ForEach(piece => piece.Remove());
     }
 
-    public bool CanMoveTo(BoardCell cell)
+    private void Remove() => Destroy(gameObject);
+
+    public bool CanMoveTo(BoardCell cell, out IEnumerable<PieceMovement> foundMoves)
     {
         var possibleMoves = GetPossibleMoves();
-        return possibleMoves.Select(x => x.Destination).Contains(cell);
+        foundMoves = possibleMoves.Where(x => x.Destination == cell);
+        return foundMoves.Any();
     }
 
     public List<PieceMovement> GetPossibleMoves()
     {
         var possibleMoves = new List<PieceMovement>();
 
-        var row = CurrentCell.CellCoordinates.Row;
-        var column = CurrentCell.CellCoordinates.Column;
-
-        possibleMoves.AddRange(GetPossibleMoves(column, row, -1));
-        possibleMoves.AddRange(GetPossibleMoves(column, row, 1));
+        possibleMoves.AddRange(GetPossibleMoves(CurrentCell, -1));
+        possibleMoves.AddRange(GetPossibleMoves(CurrentCell, 1));
 
         return possibleMoves;
     }
 
-    private IEnumerable<PieceMovement> GetPossibleMoves(int column, int row, int columnDirection)
+    private IEnumerable<PieceMovement> GetPossibleMoves(BoardCell cell, int columnDirection, PieceMovement movement = null)
     {
+        movement ??= new PieceMovement();
         var possibleMoves = new List<PieceMovement>();
 
-        var currentCell = BoardGrid.Instance.GetCellAt(row, column);
-        var nextColumn = BoardGrid.Instance.GetCellAt(row + Direction, column + columnDirection);
+        var row = cell.CellCoordinates.Row;
+        var column = cell.CellCoordinates.Column;
+        
+        var forwardColumn = BoardGrid.Instance.GetCellAt(row + Direction, column + columnDirection);
+        /*var backwardsColumn = BoardGrid.Instance.GetCellAt(row + Direction * -1, column + columnDirection);*/
 
-        if (nextColumn is null)
-            return possibleMoves;
-
-        if (!nextColumn.IsEmpty())
+        if (forwardColumn is null || !forwardColumn.IsEmpty() && forwardColumn.CurrentPiece.IsTeam(TeamColor))
         {
-            if (CanAttack(nextColumn.CurrentPiece, currentCell, out var attackingDestination))
-            {
-                var subsequentAttacks = GetSubsequentAttacks(attackingDestination);
-                possibleMoves.AddRange(subsequentAttacks);
-                return possibleMoves;
-            }
-
-            possibleMoves.Add(new PieceMovement
-            {
-                Start = CurrentCell,
-                Destination = currentCell
-            });
             return possibleMoves;
         }
 
-        possibleMoves.Add(!currentCell.IsEmpty() ? new PieceMovement
+        if (!forwardColumn.IsEmpty())
         {
-            Start = CurrentCell,
-            Destination = nextColumn
-        } : new PieceMovement
-        {
-            Start = CurrentCell,
-            Destination = currentCell
-        });
+            if (CanAttack(forwardColumn.CurrentPiece, cell, movement))
+            {
+                var sequence = GetPossibleMoves(movement.Destination, columnDirection, movement)
+                    .Union(GetPossibleMoves(movement.Destination, columnDirection * -1, movement));
+
+                possibleMoves.AddRange(sequence);
+            }
+
+            possibleMoves.Add(movement);
+            return possibleMoves;
+        }
+
+        movement.Start = CurrentCell;
+        movement.Destination = !cell.IsEmpty() ? forwardColumn : cell;
+
+        possibleMoves.Add(movement);
         return possibleMoves;
     }
 
-    private IEnumerable<PieceMovement> GetSubsequentAttacks(PieceMovement attackingDestination)
+    private bool IsTeam(TeamColor teamColor) => teamColor == TeamColor;
+
+    private bool CanAttack(Piece piece, BoardCell startCell, PieceMovement attackDestination)
     {
-        var subsequentAttacks = new List<PieceMovement>();
-
-        var rightAttacks = GetPossibleMoves(attackingDestination.Destination.CellCoordinates.Column,
-            attackingDestination.Destination.CellCoordinates.Row, 1).ToList();
-
-
-        if (rightAttacks.Any())
-        {
-            var destination = rightAttacks.Last().Destination;
-            var attackedPieces = rightAttacks.SelectMany(x => x.AttackedPieces).ToList();
-            subsequentAttacks.Add(new PieceMovement
-            {
-                Start = attackingDestination.Start,
-                Destination = destination,
-                AttackedPieces = attackedPieces
-            });
-        }
-
-        var leftAttacks = GetPossibleMoves(attackingDestination.Destination.CellCoordinates.Column,
-            attackingDestination.Destination.CellCoordinates.Row, -1).ToList();
-        
-        if (leftAttacks.Any())
-        {
-            subsequentAttacks.Add(new PieceMovement
-            {
-                Start = attackingDestination.Start,
-                Destination = leftAttacks.Last().Destination,
-                AttackedPieces = leftAttacks.SelectMany(x => x.AttackedPieces).ToList()
-            });
-        }
-        
-        return subsequentAttacks;
-    }
-
-    private bool CanAttack(Piece piece, BoardCell startCell, out PieceMovement attackDestination)
-    {
-        attackDestination = null;
-        
         var nextCell = GetNextCellFrom(piece, startCell.CellCoordinates.Column);
 
         if (!IsEnemy(piece) || nextCell == null || !nextCell.IsEmpty())
             return false;
 
-        attackDestination = new PieceMovement
-        {
-            Start = startCell,
-            Destination = nextCell,
-            AttackedPieces = new List<Piece> { piece } 
-        };
+        attackDestination.Destination = nextCell;
+        attackDestination.AttackedPieces.Add(piece);
         return true;
 
     }
