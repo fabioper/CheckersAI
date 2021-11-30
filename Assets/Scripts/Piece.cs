@@ -18,11 +18,11 @@ public class Piece : MonoBehaviour
         CurrentCell.CurrentPiece = this;
         transform.position = CurrentCell.transform.position;
     }
-    
+
     public void MoveTo(PieceMovement move)
     {
         SetPosition(move.Path.LastOrDefault());
-        if (ReachedLastRow(move.Path.LastOrDefault()))
+        if (ReachedLastRow())
             IsQueen = true;
 
         foreach (var cell in move.Path.Where(cell => !cell.IsEmpty() && !cell.CurrentPiece.IsTeam(TeamColor)))
@@ -33,10 +33,10 @@ public class Piece : MonoBehaviour
         EventsStore.Instance.NotifyEvent(GameEventType.MoveMade);
     }
 
-    private bool ReachedLastRow(BoardCell cell)
+    private bool ReachedLastRow()
     {
         return TeamColor == TeamColor.White && CurrentCell.CellCoordinates.Row == 7 ||
-            TeamColor == TeamColor.Black && CurrentCell.CellCoordinates.Row == 0;
+               TeamColor == TeamColor.Black && CurrentCell.CellCoordinates.Row == 0;
     }
 
     private void Remove()
@@ -46,51 +46,46 @@ public class Piece : MonoBehaviour
         EventsStore.Instance.NotifyEvent(GameEventType.PieceAttacked);
     }
 
-    public bool CanMoveTo(BoardCell cell, out IEnumerable<PieceMovement> foundMoves)
+    public bool CanMoveTo(BoardCell cell, out PieceMovement foundMoves)
     {
         var possibleMoves = GetPossibleMoves();
-        foundMoves = possibleMoves.Where(x => x.Path.Contains(cell));
-        return foundMoves.Any();
+        foundMoves = possibleMoves.FirstOrDefault(x => x.Path.Contains(cell));
+        return foundMoves != null;
     }
 
-    public IEnumerable<PieceMovement> GetPossibleMoves()
+    private IEnumerable<PieceMovement> GetPossibleMoves()
     {
         var possibleMoves = new List<PieceMovement>();
 
-        var nextCells = GetNextCells();
-        
+        var nextCells = GetNextCells().ToList();
+
         foreach (var nextCell in nextCells)
         {
             var boardCells = nextCell.ToList();
             boardCells.Insert(0, CurrentCell);
-            
+
             var move = new PieceMovement();
             var cell = boardCells.FirstOrDefault();
             if (cell == null) continue;
             
-            if (IsQueen)
+            var isBackwards = nextCells.IndexOf(nextCell) > 1;
+            
+            while (HasValidMove(cell, boardCells, out var movePosition, isBackwards))
             {
-                var lastEmpty = boardCells.FindLastIndex(x => x.IsEmpty() || x.CurrentPiece.IsTeam(TeamColor));
-                move.Path.AddRange(boardCells.TakeWhile((x, i) => i <= lastEmpty));
-            }
-            else
-            {
-                while (HasValidMove(cell, boardCells, out var movePosition))
-                {
-                    move.Path.AddRange(movePosition);
-                    cell = movePosition.LastOrDefault();
-    
-                    if (movePosition.Count == 1)
-                        break;
-                }
+                move.Path.AddRange(movePosition);
+                cell = movePosition.LastOrDefault();
+
+                if (movePosition.Count == 1 && !IsQueen)
+                    break;
             }
 
             possibleMoves.Add(move);
         }
+
         return possibleMoves;
     }
 
-    private bool HasValidMove(BoardCell cell, List<BoardCell> boardCells, out List<BoardCell> movePosition)
+    private bool HasValidMove(BoardCell cell, List<BoardCell> boardCells, out List<BoardCell> movePosition, bool isBackwards = false)
     {
         movePosition = new List<BoardCell>();
         var index = boardCells.IndexOf(cell);
@@ -98,8 +93,8 @@ public class Piece : MonoBehaviour
 
         if (nextCell == null)
             return false;
-        
-        if (index == 0 && nextCell.IsEmpty())
+
+        if (index == 0 && nextCell.IsEmpty() && !isBackwards || IsQueen && nextCell.IsEmpty())
         {
             movePosition.Add(nextCell);
             return true;
@@ -108,7 +103,7 @@ public class Piece : MonoBehaviour
         var attackingCell = boardCells.ElementAtOrDefault(index + 2);
         if (!CanAttack(nextCell, attackingCell))
             return false;
-        
+
         movePosition.Add(nextCell);
         movePosition.Add(attackingCell);
         return true;
@@ -121,11 +116,40 @@ public class Piece : MonoBehaviour
 
     public IEnumerable<IEnumerable<BoardCell>> GetNextCells()
     {
-        yield return GetLeftDiagonal();
-        yield return GetRightDiagonal();
+        yield return GetForwardLeftDiagonal();
+        yield return GetForwardRightDiagonal();
+        yield return GetBackwardsLeftDiagonal();
+        yield return GetBackwardsRightDiagonal();
     }
 
-    public IEnumerable<BoardCell> GetRightDiagonal()
+    private IEnumerable<BoardCell> GetBackwardsRightDiagonal()
+    {
+        var currentColumn = CurrentCell.CellCoordinates.Column;
+        var currentRow = CurrentCell.CellCoordinates.Row;
+        var backwardDirection = ForwardDirection * -1;
+
+        while (currentColumn < 7 && (backwardDirection < 0 && currentRow > 0 || backwardDirection > 0 && currentRow < 7))
+        {
+            currentRow += backwardDirection;
+            yield return BoardGrid.Instance.GetCellAt(currentRow, ++currentColumn);
+        }
+    }
+
+    private IEnumerable<BoardCell> GetBackwardsLeftDiagonal()
+    {
+        var currentColumn = CurrentCell.CellCoordinates.Column;
+        var currentRow = CurrentCell.CellCoordinates.Row;
+        var backwardDirection = ForwardDirection * -1;
+
+        while (currentColumn > 0 &&
+               (backwardDirection < 0 && currentRow > 0 || backwardDirection > 0 && currentRow < 7))
+        {
+            currentRow += backwardDirection;
+            yield return BoardGrid.Instance.GetCellAt(currentRow, --currentColumn);
+        }
+    }
+
+    public IEnumerable<BoardCell> GetForwardRightDiagonal()
     {
         var currentColumn = CurrentCell.CellCoordinates.Column;
         var currentRow = CurrentCell.CellCoordinates.Row;
@@ -137,7 +161,7 @@ public class Piece : MonoBehaviour
         }
     }
 
-    public IEnumerable<BoardCell> GetLeftDiagonal()
+    public IEnumerable<BoardCell> GetForwardLeftDiagonal()
     {
         var currentColumn = CurrentCell.CellCoordinates.Column;
         var currentRow = CurrentCell.CellCoordinates.Row;

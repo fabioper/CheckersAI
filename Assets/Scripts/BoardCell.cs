@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -46,10 +47,19 @@ public class BoardCell : MonoBehaviour
                 if (CurrentPiece != null || !selectedCellPiece)
                     return;
 
-                if (!selectedCellPiece.CanMoveTo(this, out var moves))
+                if (!selectedCellPiece.CanMoveTo(this, out var move))
                     return;
 
-                selectedCellPiece.MoveTo(moves.FirstOrDefault());
+                var pathUntilThis = new List<BoardCell>();
+                foreach (var cell in move.Path)
+                {
+                    pathUntilThis.Add(cell);
+
+                    if (cell == this)
+                        break;
+                }
+                move.Path = pathUntilThis;
+                selectedCellPiece.MoveTo(move);
                 BoardGrid.Instance.SelectedCell.CurrentPiece = null;
                 BoardGrid.Instance.SelectedCell = null;
             }
