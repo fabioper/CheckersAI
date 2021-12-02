@@ -35,30 +35,21 @@ public class GameController : MonoBehaviour
     {
         if (!IsTurn(TeamColor.Black))
             return;
-        
-        var cells = BoardGrid.Instance.Cells;
-        var blackPieces = new List<BoardCell>();
 
-        for (var x = 0; x < 7; x++)
-        {
-            for (var y = 0; y < 7; y++)
-            {
-                var cell = cells[x, y];
-                if (!cell.IsEmpty() && cell.CurrentPiece.IsTeam(TeamColor.Black))
-                    blackPieces.Add(cell);
-            }
-        }
-        
         var moved = false;
         while (!moved)
         {
-            var randomInt = Random.Range(0, blackPieces.Count - 1);
-            var randomCell = blackPieces.ElementAtOrDefault(randomInt);
-            if (randomCell == null)
+            var randomRow = Random.Range(0, 7);
+            var randomColumn = Random.Range(0, 7);
+            
+            var randomCell = BoardGrid.Instance.GetCellAt(randomRow, randomColumn);
+            
+            if (randomCell == null || randomCell.IsEmpty() || randomCell.CurrentPiece.TeamColor != TeamColor.Black)
                 continue;
 
             var moves = randomCell.CurrentPiece.GetPossibleMoves();
             var pieceMovements = moves.ToList();
+            
             if (!pieceMovements.Any())
                 continue;
             
