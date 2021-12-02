@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class GameController : MonoBehaviour
 {
@@ -24,7 +27,48 @@ public class GameController : MonoBehaviour
     private void Start()
     {
         EventsStore.Instance.OnEvent(GameEventType.MoveMade, ChangeTurn);
+        EventsStore.Instance.OnEvent(GameEventType.MoveMade, MoveIA);
         EventsStore.Instance.OnEvent(GameEventType.PieceAttacked, VerifyVictory);
+    }
+
+    private void MoveIA()
+    {
+        if (!IsTurn(TeamColor.Black))
+            return;
+        
+        var cells = BoardGrid.Instance.Cells;
+        var blackPieces = new List<BoardCell>();
+
+        for (var x = 0; x < 7; x++)
+        {
+            for (var y = 0; y < 7; y++)
+            {
+                var cell = cells[x, y];
+                if (!cell.IsEmpty() && cell.CurrentPiece.IsTeam(TeamColor.Black))
+                    blackPieces.Add(cell);
+            }
+        }
+        
+        var moved = false;
+        while (!moved)
+        {
+            var randomInt = Random.Range(0, blackPieces.Count - 1);
+            var randomCell = blackPieces.ElementAtOrDefault(randomInt);
+            if (randomCell == null)
+                continue;
+
+            var moves = randomCell.CurrentPiece.GetPossibleMoves();
+            var pieceMovements = moves.ToList();
+            if (!pieceMovements.Any())
+                continue;
+            
+            var move = pieceMovements.ElementAtOrDefault(Random.Range(0, pieceMovements.Count - 1));
+            if (move == null || !move.Path.Any())
+                continue;
+
+            randomCell.CurrentPiece.MoveTo(move);
+            moved = true;
+        }
     }
 
     private void VerifyVictory()

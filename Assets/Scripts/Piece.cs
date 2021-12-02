@@ -53,7 +53,7 @@ public class Piece : MonoBehaviour
         return foundMoves != null;
     }
 
-    private IEnumerable<PieceMovement> GetPossibleMoves()
+    public IEnumerable<PieceMovement> GetPossibleMoves()
     {
         var possibleMoves = new List<PieceMovement>();
 
@@ -220,7 +220,7 @@ public class Piece : MonoBehaviour
         return possibleMoves;
     }*/
 
-    private bool IsTeam(TeamColor teamColor) => teamColor == TeamColor;
+    public bool IsTeam(TeamColor teamColor) => teamColor == TeamColor;
 
     /*private bool CanAttack(Piece piece, BoardCell startCell, PieceMovement attackDestination)
     {
