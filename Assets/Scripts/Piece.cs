@@ -21,6 +21,7 @@ public class Piece : MonoBehaviour
 
     public void MoveTo(PieceMovement move)
     {
+        CurrentCell.CurrentPiece = null;
         SetPosition(move.Path.LastOrDefault());
         if (ReachedLastRow())
             IsQueen = true;
