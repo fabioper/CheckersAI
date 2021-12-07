@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class BoardCell : MonoBehaviour
@@ -7,8 +6,8 @@ public class BoardCell : MonoBehaviour
     [SerializeField] public Material selectedMaterial;
     [SerializeField] public Material defaultMaterial;
     
-    public Piece CurrentPiece { get; set; }
-    public CellCoordinates CellCoordinates { get; set; }
+    public Piece Piece { get; set; }
+    public CellCoordinates Position { get; set; }
 
     private Renderer _objectRenderer;
 
@@ -33,18 +32,18 @@ public class BoardCell : MonoBehaviour
         {
             if (!BoardGrid.Instance.HasSelection())
             {
-                if (CurrentPiece == null)
+                if (Piece == null)
                     return;
 
-                if (GameController.Instance.IsTurn(CurrentPiece.TeamColor))
+                if (GameController.Instance.IsTurn(Piece.Color))
                     BoardGrid.Instance.SelectedCell = this;
             }
             else
             {
                 if (DeselectIfAlreadySelected()) return;
-                var selectedCellPiece = BoardGrid.Instance.SelectedCell.CurrentPiece;
+                var selectedCellPiece = BoardGrid.Instance.SelectedCell.Piece;
 
-                if (CurrentPiece != null || !selectedCellPiece)
+                if (Piece != null || !selectedCellPiece)
                     return;
 
                 if (!selectedCellPiece.CanMoveTo(this, out var move))
@@ -60,7 +59,7 @@ public class BoardCell : MonoBehaviour
                 }
                 move.Path = pathUntilThis;
                 selectedCellPiece.MoveTo(move);
-                BoardGrid.Instance.SelectedCell.CurrentPiece = null;
+                BoardGrid.Instance.SelectedCell.Piece = null;
                 BoardGrid.Instance.SelectedCell = null;
             }
         }
@@ -81,7 +80,7 @@ public class BoardCell : MonoBehaviour
 
         if (BoardGrid.Instance.SelectedCell != null && BoardGrid.Instance.SelectedCell != this)
         {
-            var selectedPiece = BoardGrid.Instance.SelectedCell.CurrentPiece;
+            var selectedPiece = BoardGrid.Instance.SelectedCell.Piece;
 
             if (selectedPiece.CanMoveTo(this, out var moves))
             {
@@ -92,6 +91,6 @@ public class BoardCell : MonoBehaviour
 
     public bool IsEmpty()
     {
-        return CurrentPiece == null;
+        return Piece == null;
     }
 }

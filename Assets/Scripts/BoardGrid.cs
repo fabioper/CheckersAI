@@ -22,7 +22,7 @@ public class BoardGrid : MonoBehaviour
             for (var y = 0; y < 8; y++)
             {
                 var boardCell = GetBoardCellFromChildAt(cellPosition);
-                boardCell.CellCoordinates = new CellCoordinates(x, y);
+                boardCell.Position = new CellCoordinates(x, y);
                 Cells[x, y] = boardCell;
                 cellPosition++;
             }

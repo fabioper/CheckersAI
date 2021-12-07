@@ -35,7 +35,7 @@ public class Board : MonoBehaviour
     {
         var go = Instantiate(GetPrefabFor(teamColor), transform, true);
         var piece = go.GetComponent<Piece>();
-        piece.TeamColor = teamColor;
+        piece.Color = teamColor;
         MovePiece(piece, x, y);
     }
 

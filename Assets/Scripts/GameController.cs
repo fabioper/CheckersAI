@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -44,11 +43,10 @@ public class GameController : MonoBehaviour
             
             var randomCell = BoardGrid.Instance.GetCellAt(randomRow, randomColumn);
             
-            if (randomCell == null || randomCell.IsEmpty() || randomCell.CurrentPiece.TeamColor != TeamColor.Black)
+            if (randomCell == null || randomCell.IsEmpty() || randomCell.Piece.Color != TeamColor.Black)
                 continue;
 
-            var moves = randomCell.CurrentPiece.GetPossibleMoves();
-            var pieceMovements = moves.ToList();
+            var pieceMovements = randomCell.Piece.GetPossibleMoves();
             
             if (!pieceMovements.Any())
                 continue;
@@ -57,7 +55,7 @@ public class GameController : MonoBehaviour
             if (move == null || !move.Path.Any())
                 continue;
 
-            randomCell.CurrentPiece.MoveTo(move);
+            randomCell.Piece.MoveTo(move);
             moved = true;
         }
     }
