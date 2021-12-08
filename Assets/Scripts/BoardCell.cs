@@ -46,7 +46,7 @@ public class BoardCell : MonoBehaviour
                 if (Piece != null || !selectedCellPiece)
                     return;
 
-                if (selectedCellPiece.CanMoveTo(this, out var move) && move.HasValue)
+                if (selectedCellPiece.CanMoveTo(this, out var move).Result && move.HasValue)
                 {
                     selectedCellPiece.MoveTo(move.Value);
                     BoardGrid.Instance.SelectedCell.Piece = null;
@@ -73,7 +73,7 @@ public class BoardCell : MonoBehaviour
         {
             var selectedPiece = BoardGrid.Instance.SelectedCell.Piece;
 
-            if (selectedPiece.CanMoveTo(this, out _))
+            if (selectedPiece.CanMoveTo(this, out _).Result)
             {
                 _objectRenderer.material = selectedMaterial;
             }

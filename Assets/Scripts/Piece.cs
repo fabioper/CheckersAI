@@ -1,10 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class Piece : MonoBehaviour
 {
+
+    private const int ROWS = 8;
+    private const int COLS = 8;
+
     public TeamColor Color { get; set; }
     public BoardCell Cell { get; set; }
 
@@ -52,7 +57,7 @@ public class Piece : MonoBehaviour
 
     private bool ReachedLastRow() => Cell.Position.Row == LastRow;
 
-    public bool CanMoveTo(BoardCell cell, out (CellCoordinates moveKey, List<BoardCell> pieceSkips)? move)
+    public Task<bool> CanMoveTo(BoardCell cell, out (CellCoordinates moveKey, List<BoardCell> pieceSkips)? move)
     {
         move = null;
         
@@ -67,7 +72,7 @@ public class Piece : MonoBehaviour
             move = (moveKey, pieceSkips);
         }
 
-        return canMove;
+        return Task.Run(() => canMove );
     }
 
     private Func<CellCoordinates, bool> SamePosition(BoardCell cell)
@@ -78,8 +83,8 @@ public class Piece : MonoBehaviour
     public Dictionary<CellCoordinates, List<BoardCell>> GetPossibleMoves()
     {
         var moves = new Dictionary<CellCoordinates, List<BoardCell>>();
-        var left = Cell.Position.Column + 1;
-        var right = Cell.Position.Column - 1;
+        var left = Cell.Position.Column - 1;
+        var right = Cell.Position.Column + 1;
         var row = Cell.Position.Row;
 
         if (IsTeam(TeamColor.Black) || IsKing)
@@ -90,8 +95,8 @@ public class Piece : MonoBehaviour
         
         if (IsTeam(TeamColor.White) || IsKing)
         {
-            UpdateDict(moves, TraverseLeft(row + 1, Math.Min(row + 3, 8), 1, Color, left));
-            UpdateDict(moves, TraverseRight(row + 1, Math.Min(row + 3, 8), 1, Color, right));
+            UpdateDict(moves, TraverseLeft(row + 1, Math.Min(row + 3, ROWS), 1, Color, left));
+            UpdateDict(moves, TraverseRight(row + 1, Math.Min(row + 3, ROWS), 1, Color, right));
         }
 
         return moves;
@@ -123,7 +128,7 @@ public class Piece : MonoBehaviour
 
                 if (last.Any())
                 {
-                    var row = step == -1 ? Math.Max(r - 3, 0) : Math.Min(r + 3, 8);
+                    var row = step == -1 ? Math.Max(r - 3, 0) : Math.Min(r + 3, ROWS);
 
                     UpdateDict(moves, TraverseLeft(r + step, row, step, color, left - 1, last));
                     UpdateDict(moves, TraverseRight(r + step, row, step, color, left + 1, last));
@@ -157,7 +162,7 @@ public class Piece : MonoBehaviour
 
         foreach (var r in RangeIterator(start, stop, step))
         {
-            if (right >= 8)
+            if (right >= COLS)
                 break;
 
             var current = BoardGrid.Instance.GetCellAt(r, right);
@@ -174,7 +179,7 @@ public class Piece : MonoBehaviour
 
                 if (last.Any())
                 {
-                    var row = step == -1 ? Math.Max(r - 3, 0) : Math.Min(r + 3, 8);
+                    var row = step == -1 ? Math.Max(r - 3, 0) : Math.Min(r + 3, ROWS);
 
                     UpdateDict(moves, TraverseLeft(r + step, row, step, color, right - 1, last));
                     UpdateDict(moves, TraverseRight(r + step, row, step, color, right + 1, last));
