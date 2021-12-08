@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class BoardCell : MonoBehaviour
@@ -11,47 +10,41 @@ public class BoardCell : MonoBehaviour
 
     private Renderer _objectRenderer;
 
-    private void Start()
-    {
-        _objectRenderer = GetComponent<MeshRenderer>();
-    }
+    private void Start() => _objectRenderer = GetComponent<MeshRenderer>();
 
-    private void OnMouseEnter()
-    {
-        _objectRenderer.material = selectedMaterial;
-    }
+    private void OnMouseEnter() => _objectRenderer.material = selectedMaterial;
 
-    private void OnMouseExit()
-    {
-        _objectRenderer.material = defaultMaterial;
-    }
+    private void OnMouseExit() => _objectRenderer.material = defaultMaterial;
 
     void OnMouseOver()
     {
         if (Input.GetMouseButtonDown(0))
+            Select();
+    }
+
+    private void Select()
+    {
+        if (!BoardGrid.Instance.HasSelection())
         {
-            if (!BoardGrid.Instance.HasSelection())
+            if (Piece == null)
+                return;
+
+            if (GameController.Instance.IsTurn(Piece.Color))
+                BoardGrid.Instance.SelectedCell = this;
+        }
+        else
+        {
+            if (DeselectIfAlreadySelected()) return;
+            var selectedCellPiece = BoardGrid.Instance.SelectedCell.Piece;
+
+            if (Piece != null || !selectedCellPiece)
+                return;
+
+            if (selectedCellPiece.CanMoveTo(this, out var move).Result && move.HasValue)
             {
-                if (Piece == null)
-                    return;
-
-                if (GameController.Instance.IsTurn(Piece.Color))
-                    BoardGrid.Instance.SelectedCell = this;
-            }
-            else
-            {
-                if (DeselectIfAlreadySelected()) return;
-                var selectedCellPiece = BoardGrid.Instance.SelectedCell.Piece;
-
-                if (Piece != null || !selectedCellPiece)
-                    return;
-
-                if (selectedCellPiece.CanMoveTo(this, out var move).Result && move.HasValue)
-                {
-                    selectedCellPiece.MoveTo(move.Value);
-                    BoardGrid.Instance.SelectedCell.Piece = null;
-                    BoardGrid.Instance.SelectedCell = null;
-                }
+                selectedCellPiece.MoveTo(move.Value);
+                BoardGrid.Instance.SelectedCell.Piece = null;
+                BoardGrid.Instance.SelectedCell = null;
             }
         }
     }
@@ -74,14 +67,9 @@ public class BoardCell : MonoBehaviour
             var selectedPiece = BoardGrid.Instance.SelectedCell.Piece;
 
             if (selectedPiece.CanMoveTo(this, out _).Result)
-            {
                 _objectRenderer.material = selectedMaterial;
-            }
         }
     }
 
-    public bool IsEmpty()
-    {
-        return Piece == null;
-    }
+    public bool IsEmpty() => Piece == null;
 }

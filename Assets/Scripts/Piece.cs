@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Extensions;
 using UnityEngine;
+using static Utils.EnumerableUtils;
 
 public class Piece : MonoBehaviour
 {
@@ -75,10 +77,8 @@ public class Piece : MonoBehaviour
         return Task.Run(() => canMove );
     }
 
-    private Func<CellCoordinates, bool> SamePosition(BoardCell cell)
-    {
-        return x => x.Column == cell.Position.Column && x.Row == cell.Position.Row;
-    }
+    private static Func<CellCoordinates, bool> SamePosition(BoardCell cell)
+        => x => x.Column == cell.Position.Column && x.Row == cell.Position.Row;
 
     public Dictionary<CellCoordinates, List<BoardCell>> GetPossibleMoves()
     {
@@ -89,14 +89,14 @@ public class Piece : MonoBehaviour
 
         if (IsTeam(TeamColor.Black) || IsKing)
         {
-            UpdateDict(moves, TraverseLeft(row - 1, Math.Max(row - 3, -1), -1, Color, left));
-            UpdateDict(moves, TraverseRight(row - 1, Math.Max(row - 3, -1), -1, Color, right));
+            moves.Update(TraverseLeft(row - 1, Math.Max(row - 3, -1), -1, Color, left));
+            moves.Update(TraverseRight(row - 1, Math.Max(row - 3, -1), -1, Color, right));
         }
         
         if (IsTeam(TeamColor.White) || IsKing)
         {
-            UpdateDict(moves, TraverseLeft(row + 1, Math.Min(row + 3, ROWS), 1, Color, left));
-            UpdateDict(moves, TraverseRight(row + 1, Math.Min(row + 3, ROWS), 1, Color, right));
+            moves.Update(TraverseLeft(row + 1, Math.Min(row + 3, ROWS), 1, Color, left));
+            moves.Update(TraverseRight(row + 1, Math.Min(row + 3, ROWS), 1, Color, right));
         }
 
         return moves;
@@ -108,8 +108,7 @@ public class Piece : MonoBehaviour
         var last = new List<BoardCell>();
         skipped ??= new List<BoardCell>();
 
-
-        foreach (var r in RangeIterator(start, stop, step))
+        foreach (var r in Range(start, stop, step))
         {
             if (left < 0)
                 break;
@@ -130,8 +129,8 @@ public class Piece : MonoBehaviour
                 {
                     var row = step == -1 ? Math.Max(r - 3, 0) : Math.Min(r + 3, ROWS);
 
-                    UpdateDict(moves, TraverseLeft(r + step, row, step, color, left - 1, last));
-                    UpdateDict(moves, TraverseRight(r + step, row, step, color, left + 1, last));
+                    moves.Update(TraverseLeft(r + step, row, step, color, left - 1, last));
+                    moves.Update(TraverseRight(r + step, row, step, color, left + 1, last));
                 }
                 else
                 {
@@ -159,8 +158,7 @@ public class Piece : MonoBehaviour
         var last = new List<BoardCell>();
         skipped ??= new List<BoardCell>();
 
-
-        foreach (var r in RangeIterator(start, stop, step))
+        foreach (var r in Range(start, stop, step))
         {
             if (right >= COLS)
                 break;
@@ -181,8 +179,8 @@ public class Piece : MonoBehaviour
                 {
                     var row = step == -1 ? Math.Max(r - 3, 0) : Math.Min(r + 3, ROWS);
 
-                    UpdateDict(moves, TraverseLeft(r + step, row, step, color, right - 1, last));
-                    UpdateDict(moves, TraverseRight(r + step, row, step, color, right + 1, last));
+                    moves.Update(TraverseLeft(r + step, row, step, color, right - 1, last));
+                    moves.Update(TraverseRight(r + step, row, step, color, right + 1, last));
                 }
                 else
                 {
@@ -209,27 +207,5 @@ public class Piece : MonoBehaviour
         Destroy(gameObject);
         GameController.Instance.DecreaseCountFor(Color);
         EventsStore.Instance.NotifyEvent(GameEventType.PieceAttacked);
-    }
-    
-    private static IEnumerable<int> RangeIterator(int start, int stop, int step)
-    {
-        var x = start;
-
-        do
-        {
-            yield return x;
-            x += step;
-            if (step < 0 && x <= stop || 0 < step && stop <= x)
-                break;
-        }
-        while (true);
-    }
-
-    public static void UpdateDict(Dictionary<CellCoordinates, List<BoardCell>> dict, Dictionary<CellCoordinates, List<BoardCell>> updatedDict)
-    {
-        foreach (var key in updatedDict.Keys)
-        {
-            dict[key] = updatedDict[key];
-        }
     }
 }
