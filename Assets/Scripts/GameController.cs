@@ -50,13 +50,16 @@ public class GameController : MonoBehaviour
             
             if (!pieceMovements.Any())
                 continue;
-            
-            var move = pieceMovements.ElementAtOrDefault(Random.Range(0, pieceMovements.Count - 1));
-            if (move == null || !move.Path.Any())
-                continue;
 
-            randomCell.Piece.MoveTo(move);
-            moved = true;
+            var randomKey = pieceMovements.Keys.ElementAtOrDefault(Random.Range(0, pieceMovements.Count - 1));
+            if (randomKey != null)
+            {
+                var move = pieceMovements.FirstOrDefault(x =>
+                    randomKey.Row == x.Key.Row && randomKey.Column == x.Key.Column);
+                
+                randomCell.Piece.MoveTo((move.Key, move.Value));
+                moved = true;
+            }
         }
     }
 

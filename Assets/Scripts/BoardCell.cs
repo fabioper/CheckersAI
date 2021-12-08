@@ -46,21 +46,12 @@ public class BoardCell : MonoBehaviour
                 if (Piece != null || !selectedCellPiece)
                     return;
 
-                if (!selectedCellPiece.CanMoveTo(this, out var move))
-                    return;
-
-                var pathUntilThis = new List<BoardCell>();
-                foreach (var cell in move.Path)
+                if (selectedCellPiece.CanMoveTo(this, out var move) && move.HasValue)
                 {
-                    pathUntilThis.Add(cell);
-
-                    if (cell == this)
-                        break;
+                    selectedCellPiece.MoveTo(move.Value);
+                    BoardGrid.Instance.SelectedCell.Piece = null;
+                    BoardGrid.Instance.SelectedCell = null;
                 }
-                move.Path = pathUntilThis;
-                selectedCellPiece.MoveTo(move);
-                BoardGrid.Instance.SelectedCell.Piece = null;
-                BoardGrid.Instance.SelectedCell = null;
             }
         }
     }
@@ -82,7 +73,7 @@ public class BoardCell : MonoBehaviour
         {
             var selectedPiece = BoardGrid.Instance.SelectedCell.Piece;
 
-            if (selectedPiece.CanMoveTo(this, out var moves))
+            if (selectedPiece.CanMoveTo(this, out _))
             {
                 _objectRenderer.material = selectedMaterial;
             }
