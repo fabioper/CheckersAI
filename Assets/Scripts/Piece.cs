@@ -137,7 +137,7 @@ public class Piece : MonoBehaviour
                     break;
                 }
             }
-            else if (current.Piece.IsTeam(Color))
+            else if (current.Piece.IsTeam(color))
             {
                 break;
             }
@@ -187,7 +187,7 @@ public class Piece : MonoBehaviour
                     break;
                 }
             }
-            else if (current.Piece.IsTeam(Color))
+            else if (current.Piece.IsTeam(color))
             {
                 break;
             }
