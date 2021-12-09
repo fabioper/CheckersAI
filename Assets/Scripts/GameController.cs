@@ -54,7 +54,7 @@ public class GameController : MonoBehaviour
             if (randomCell == null || randomCell.IsEmpty() || randomCell.Piece.Color != TeamColor.Black)
                 continue;
 
-            var pieceMovements = randomCell.Piece.GetPossibleMoves();
+            var pieceMovements = BoardGrid.Instance.GetPossibleMoves(randomCell.Piece);
             
             if (!pieceMovements.Any())
                 continue;
@@ -73,7 +73,6 @@ public class GameController : MonoBehaviour
 
     private void VerifyVictory()
     {
-        Debug.Log(WhitePieces.Count);
         if (BlackPieces.Count == 0)
         {
             Debug.Log("Vitória das peças brancas!");
