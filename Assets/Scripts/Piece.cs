@@ -202,10 +202,17 @@ public class Piece : MonoBehaviour
         return moves;
     }
 
+    private void Awake()
+    {
+        GameController.Instance.Pieces.Add(this);
+        Debug.Log(GameController.Instance.Pieces.Count);
+    }
+
     private void Remove()
     {
         Destroy(gameObject);
-        GameController.Instance.DecreaseCountFor(Color);
+        GameController.Instance.Pieces.Remove(this);
         EventsStore.Instance.NotifyEvent(GameEventType.PieceAttacked);
+        Debug.Log(GameController.Instance.Pieces.Count);
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -6,15 +7,22 @@ using Random = UnityEngine.Random;
 public class GameController : MonoBehaviour
 {
     public static GameController Instance { get; private set; }
-    public int WhiteCount { get; set; }
-    public int BlackCount { get; set; }
+    public HashSet<Piece> Pieces { get; set; }
+
+    public HashSet<Piece> WhitePieces
+        => new HashSet<Piece>(Pieces.Where(x => x.IsTeam(TeamColor.White)));
+    public HashSet<Piece> BlackPieces
+        => new HashSet<Piece>(Pieces.Where(x => x.IsTeam(TeamColor.Black)));
+    public HashSet<Piece> WhiteKings
+        => new HashSet<Piece>(Pieces.Where(x => x.IsTeam(TeamColor.Black) && x.IsKing));
+    public HashSet<Piece> BlackKings
+        => new HashSet<Piece>(Pieces.Where(x => x.IsTeam(TeamColor.Black) && x.IsKing));
 
     private void Awake()
     {
         Instance = this;
         ActiveTeam = TeamColor.White;
-        WhiteCount = 12;
-        BlackCount = 12;
+        Pieces = new HashSet<Piece>();
     }
 
     public TeamColor ActiveTeam { get; set; }
@@ -65,30 +73,16 @@ public class GameController : MonoBehaviour
 
     private void VerifyVictory()
     {
-        if (BlackCount == 0)
+        Debug.Log(WhitePieces.Count);
+        if (BlackPieces.Count == 0)
         {
             Debug.Log("Vitória das peças brancas!");
             return;
         }
         
-        if (WhiteCount == 0)
+        if (WhitePieces.Count == 0)
         {
             Debug.Log("Vitória das peças pretas!");
-        }
-    }
-
-    public void DecreaseCountFor(TeamColor teamColor)
-    {
-        switch (teamColor)
-        {
-            case TeamColor.White:
-                WhiteCount--;
-                break;
-            case TeamColor.Black:
-                BlackCount--;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(teamColor), teamColor, null);
         }
     }
 }
