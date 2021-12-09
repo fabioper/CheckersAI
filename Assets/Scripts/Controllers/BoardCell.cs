@@ -31,7 +31,7 @@ namespace Controllers
                 if (Piece == null)
                     return;
 
-                if (GameController.Instance.IsTurn(Piece.Color))
+                if (Game.Instance.IsTurn(Piece.Color))
                     BoardGrid.Instance.SelectedCell = this;
             }
             else

@@ -5,9 +5,9 @@ using UnityEngine;
 
 namespace Controllers
 {
-    public class GameController : MonoBehaviour
+    public class Game : MonoBehaviour
     {
-        public static GameController Instance { get; private set; }
+        public static Game Instance { get; private set; }
         public HashSet<Piece> Pieces { get; set; }
         public TeamColor? Winner { get; set; }
 

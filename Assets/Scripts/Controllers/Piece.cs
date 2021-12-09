@@ -36,12 +36,12 @@ namespace Controllers
 
         public bool ReachedLastRow() => Cell.Position.Row == LastRow;
 
-        private void Awake() => GameController.Instance.Pieces.Add(this);
+        private void Awake() => Game.Instance.Pieces.Add(this);
 
         public void Remove()
         {
             Destroy(gameObject);
-            GameController.Instance.Pieces.Remove(this);
+            Game.Instance.Pieces.Remove(this);
             EventsStore.Instance.NotifyEvent(GameEventType.PieceAttacked);
         }
     

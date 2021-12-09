@@ -232,10 +232,10 @@ namespace Controllers
 
         public double Evaluate()
         {
-            var blackPiecesCount = GameController.Instance.BlackPieces.Count;
-            var whitePiecesCount = GameController.Instance.WhitePieces.Count;
-            var blackKingsCount = GameController.Instance.BlackKings.Count;
-            var whiteKingsCount = GameController.Instance.WhiteKings.Count;
+            var blackPiecesCount = Game.Instance.BlackPieces.Count;
+            var whitePiecesCount = Game.Instance.WhitePieces.Count;
+            var blackKingsCount = Game.Instance.BlackKings.Count;
+            var whiteKingsCount = Game.Instance.WhiteKings.Count;
 
             return blackPiecesCount - whitePiecesCount + (blackKingsCount * 0.5 - whiteKingsCount * 0.5);
         }
