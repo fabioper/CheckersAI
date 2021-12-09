@@ -37,31 +37,16 @@ public class Piece : MonoBehaviour
         IsKing = true;
     }
 
-    public void MoveTo((CellCoordinates moveKey, List<BoardCell> pieceSkips) move)
-    {
-        Cell.Piece = null;
-        var (moveKey, pieceSkips) = move;
-        SetPosition(BoardGrid.Instance.GetCellAt(moveKey.Row, moveKey.Column));
-        
-        if (ReachedLastRow())
-            PromoteKing();
-
-        foreach (var piece in pieceSkips.Where(x => !x.IsEmpty()).Select(x => x.Piece))
-        {
-            piece.Remove();
-        }
-
-        EventsStore.Instance.NotifyEvent(GameEventType.MoveMade);
-    }
-
-    private bool ReachedLastRow() => Cell.Position.Row == LastRow;
+    public bool ReachedLastRow() => Cell.Position.Row == LastRow;
 
     private void Awake() => GameController.Instance.Pieces.Add(this);
 
-    private void Remove()
+    public void Remove()
     {
         Destroy(gameObject);
         GameController.Instance.Pieces.Remove(this);
         EventsStore.Instance.NotifyEvent(GameEventType.PieceAttacked);
     }
+    
+    public Piece Clone() => (Piece) MemberwiseClone();
 }

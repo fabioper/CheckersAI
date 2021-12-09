@@ -42,7 +42,7 @@ public class BoardCell : MonoBehaviour
 
             if (BoardGrid.Instance.CanMoveTo(selectedCellPiece, this, out var move).Result && move.HasValue)
             {
-                selectedCellPiece.MoveTo(move.Value);
+                BoardGrid.Instance.MoveTo(selectedCellPiece, move.Value);
                 BoardGrid.Instance.SelectedCell.Piece = null;
                 BoardGrid.Instance.SelectedCell = null;
             }

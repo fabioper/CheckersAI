@@ -209,4 +209,42 @@ public class BoardGrid : MonoBehaviour
     
     private static Func<CellCoordinates, bool> SamePosition(BoardCell cell)
         => x => x.Column == cell.Position.Column && x.Row == cell.Position.Row;
+    
+    public void MoveTo(Piece piece, (CellCoordinates moveKey, List<BoardCell> pieceSkips) move)
+    {
+        piece.Cell.Piece = null;
+        
+        var (moveKey, pieceSkips) = move;
+        piece.SetPosition(GetCellAt(moveKey.Row, moveKey.Column));
+        
+        if (piece.ReachedLastRow())
+            piece.PromoteKing();
+
+        foreach (var skippedPiece in pieceSkips.Where(x => !x.IsEmpty()).Select(x => x.Piece))
+        {
+            skippedPiece.Remove();
+        }
+
+        EventsStore.Instance.NotifyEvent(GameEventType.MoveMade);
+    }
+
+    public double Evaluate()
+    {
+        var blackPiecesCount = GameController.Instance.BlackPieces.Count;
+        var whitePiecesCount = GameController.Instance.WhitePieces.Count;
+        var blackKingsCount = GameController.Instance.BlackKings.Count;
+        var whiteKingsCount = GameController.Instance.WhiteKings.Count;
+
+        return blackPiecesCount - whitePiecesCount + (blackKingsCount * 0.5 - whiteKingsCount * 0.5);
+    }
+    
+    public void Remove(Piece piece) => piece.Remove();
+
+    public static void Replace(BoardGrid newBoard)
+    {
+        Instance = newBoard;
+        EventsStore.Instance.NotifyEvent(GameEventType.MoveMade);
+    }
+
+    public BoardGrid Clone() => (BoardGrid)MemberwiseClone();
 }
