@@ -2,12 +2,12 @@ using UnityEngine;
 
 namespace Controllers
 {
-    public class BoardCell : MonoBehaviour
+    public class BoardCellController : MonoBehaviour
     {
         [SerializeField] public Material selectedMaterial;
         [SerializeField] public Material defaultMaterial;
     
-        public Piece Piece { get; set; }
+        public PieceController Piece { get; set; }
         public CellCoordinates Position { get; set; }
 
         private Renderer _objectRenderer;
@@ -26,49 +26,49 @@ namespace Controllers
 
         private void Select()
         {
-            if (!BoardGrid.Instance.HasSelection())
+            if (!BoardGridController.Instance.HasSelection())
             {
                 if (Piece == null)
                     return;
 
-                if (Game.Instance.IsTurn(Piece.Color))
-                    BoardGrid.Instance.SelectedCell = this;
+                if (GameController.Instance.IsTurn(Piece.Color))
+                    BoardGridController.Instance.SelectedCell = this;
             }
             else
             {
                 if (DeselectIfAlreadySelected()) return;
-                var selectedCellPiece = BoardGrid.Instance.SelectedCell.Piece;
+                var selectedCellPiece = BoardGridController.Instance.SelectedCell.Piece;
 
                 if (Piece != null || !selectedCellPiece)
                     return;
 
-                if (BoardGrid.Instance.CanMoveTo(selectedCellPiece, this, out var move).Result && move.HasValue)
+                if (BoardGridController.Instance.CanMoveTo(selectedCellPiece, this, out var move).Result && move.HasValue)
                 {
-                    BoardGrid.Instance.MoveTo(selectedCellPiece, move.Value);
-                    BoardGrid.Instance.SelectedCell.Piece = null;
-                    BoardGrid.Instance.SelectedCell = null;
+                    BoardGridController.Instance.MoveTo(selectedCellPiece, move.Value);
+                    BoardGridController.Instance.SelectedCell.Piece = null;
+                    BoardGridController.Instance.SelectedCell = null;
                 }
             }
         }
 
         private bool DeselectIfAlreadySelected()
         {
-            if (!BoardGrid.Instance.IsSelected(this))
+            if (!BoardGridController.Instance.IsSelected(this))
                 return false;
 
-            BoardGrid.Instance.SelectedCell = null;
+            BoardGridController.Instance.SelectedCell = null;
             return true;
         }
 
         private void Update()
         {
-            _objectRenderer.material = BoardGrid.Instance.SelectedCell == this ? selectedMaterial : defaultMaterial;
+            _objectRenderer.material = BoardGridController.Instance.SelectedCell == this ? selectedMaterial : defaultMaterial;
 
-            if (BoardGrid.Instance.SelectedCell != null && BoardGrid.Instance.SelectedCell != this)
+            if (BoardGridController.Instance.SelectedCell != null && BoardGridController.Instance.SelectedCell != this)
             {
-                var selectedPiece = BoardGrid.Instance.SelectedCell.Piece;
+                var selectedPiece = BoardGridController.Instance.SelectedCell.Piece;
 
-                if (BoardGrid.Instance.CanMoveTo(selectedPiece, this, out _).Result)
+                if (BoardGridController.Instance.CanMoveTo(selectedPiece, this, out _).Result)
                     _objectRenderer.material = selectedMaterial;
             }
         }

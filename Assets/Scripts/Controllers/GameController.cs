@@ -5,26 +5,26 @@ using UnityEngine;
 
 namespace Controllers
 {
-    public class Game : MonoBehaviour
+    public class GameController : MonoBehaviour
     {
-        public static Game Instance { get; private set; }
-        public HashSet<Piece> Pieces { get; set; }
+        public static GameController Instance { get; private set; }
+        public HashSet<PieceController> Pieces { get; set; }
         public TeamColor? Winner { get; set; }
 
-        public HashSet<Piece> WhitePieces
-            => new HashSet<Piece>(Pieces.Where(x => x.IsTeam(TeamColor.White)));
-        public HashSet<Piece> BlackPieces
-            => new HashSet<Piece>(Pieces.Where(x => x.IsTeam(TeamColor.Black)));
-        public HashSet<Piece> WhiteKings
-            => new HashSet<Piece>(Pieces.Where(x => x.IsTeam(TeamColor.Black) && x.IsKing));
-        public HashSet<Piece> BlackKings
-            => new HashSet<Piece>(Pieces.Where(x => x.IsTeam(TeamColor.Black) && x.IsKing));
+        public HashSet<PieceController> WhitePieces
+            => new HashSet<PieceController>(Pieces.Where(x => x.IsTeam(TeamColor.White)));
+        public HashSet<PieceController> BlackPieces
+            => new HashSet<PieceController>(Pieces.Where(x => x.IsTeam(TeamColor.Black)));
+        public HashSet<PieceController> WhiteKings
+            => new HashSet<PieceController>(Pieces.Where(x => x.IsTeam(TeamColor.Black) && x.IsKing));
+        public HashSet<PieceController> BlackKings
+            => new HashSet<PieceController>(Pieces.Where(x => x.IsTeam(TeamColor.Black) && x.IsKing));
 
         private void Awake()
         {
             Instance = this;
             ActiveTeam = TeamColor.White;
-            Pieces = new HashSet<Piece>();
+            Pieces = new HashSet<PieceController>();
         }
 
         public TeamColor ActiveTeam { get; set; }
@@ -45,8 +45,8 @@ namespace Controllers
             if (!IsTurn(TeamColor.Black))
                 return;
 
-            var result = Minimax(BoardGrid.Instance, 1, true);
-            BoardGrid.Replace(result.Board);
+            var result = Minimax(BoardGridController.Instance, 1, true);
+            BoardGridController.Replace(result.Board);
         }
 
         private void VerifyVictory()
@@ -65,7 +65,7 @@ namespace Controllers
             }
         }
 
-        public (double Evaluation, BoardGrid Board) Minimax(BoardGrid board, int depth, bool maxPlayer)
+        public (double Evaluation, BoardGridController Board) Minimax(BoardGridController board, int depth, bool maxPlayer)
         {
             if (depth == 0 || Winner.HasValue)
                 return (board.Evaluate(), board);
@@ -73,7 +73,7 @@ namespace Controllers
             if (maxPlayer)
             {
                 var maxEvaluation = double.NegativeInfinity;
-                BoardGrid bestMove = null;
+                BoardGridController bestMove = null;
 
                 foreach (var move in GetAllMoves(board, TeamColor.Black))
                 {
@@ -89,7 +89,7 @@ namespace Controllers
             else
             {
                 var minEvaluation = double.PositiveInfinity;
-                BoardGrid bestMove = null;
+                BoardGridController bestMove = null;
 
                 foreach (var move in GetAllMoves(board, TeamColor.White))
                 {
@@ -104,9 +104,9 @@ namespace Controllers
             }
         }
 
-        private IEnumerable<BoardGrid> GetAllMoves(BoardGrid board, TeamColor color)
+        private IEnumerable<BoardGridController> GetAllMoves(BoardGridController board, TeamColor color)
         {
-            var moves = new List<BoardGrid>();
+            var moves = new List<BoardGridController>();
 
             var allPieces = color == TeamColor.Black ? BlackPieces : WhitePieces;
         
@@ -125,7 +125,7 @@ namespace Controllers
             return moves;
         }
 
-        private static BoardGrid SimulateMove(Piece piece, CellCoordinates position, BoardGrid board, List<BoardCell> skips)
+        private static BoardGridController SimulateMove(PieceController piece, CellCoordinates position, BoardGridController board, List<BoardCellController> skips)
         {
             board.MoveTo(piece, (position, skips));
             if (skips.Any())

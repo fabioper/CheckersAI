@@ -8,15 +8,15 @@ using static Utils.EnumerableUtils;
 
 namespace Controllers
 {
-    public class BoardGrid : MonoBehaviour
+    public class BoardGridController : MonoBehaviour
     {
         private const int ROWS = 8;
         private const int COLS = 8;
     
-        public BoardCell[,] Cells = new BoardCell[8, 8];
-        public BoardCell SelectedCell { get; set; }
+        public BoardCellController[,] Cells = new BoardCellController[8, 8];
+        public BoardCellController SelectedCell { get; set; }
     
-        public static BoardGrid Instance { get; private set; }
+        public static BoardGridController Instance { get; private set; }
     
         private void Awake()
         {
@@ -39,18 +39,18 @@ namespace Controllers
             }
         }
 
-        private BoardCell GetBoardCellFromChildAt(int cellPosition)
+        private BoardCellController GetBoardCellFromChildAt(int cellPosition)
         {
             var child = transform.GetChild(cellPosition);
-            var cell = child.GetComponent<BoardCell>();
+            var cell = child.GetComponent<BoardCellController>();
             return cell;
         }
 
-        public void SetPieceAt(Piece piece, int x, int y) => piece.SetPosition(Cells[x, y]);
+        public void SetPieceAt(PieceController piece, int x, int y) => piece.SetPosition(Cells[x, y]);
 
-        public BoardCell GetCellAt(int row, int column)
+        public BoardCellController GetCellAt(int row, int column)
         {
-            BoardCell foundCell = null;
+            BoardCellController foundCell = null;
         
             try
             {
@@ -67,11 +67,11 @@ namespace Controllers
     
         public bool HasSelection() => SelectedCell != null;
 
-        public bool IsSelected(BoardCell boardCell) => SelectedCell == boardCell;
+        public bool IsSelected(BoardCellController boardCell) => SelectedCell == boardCell;
     
-        public Dictionary<CellCoordinates, List<BoardCell>> GetPossibleMoves(Piece piece)
+        public Dictionary<CellCoordinates, List<BoardCellController>> GetPossibleMoves(PieceController piece)
         {
-            var moves = new Dictionary<CellCoordinates, List<BoardCell>>();
+            var moves = new Dictionary<CellCoordinates, List<BoardCellController>>();
             var left = piece.Cell.Position.Column - 1;
             var right = piece.Cell.Position.Column + 1;
             var row = piece.Cell.Position.Row;
@@ -91,11 +91,11 @@ namespace Controllers
             return moves;
         }
     
-        private Dictionary<CellCoordinates, List<BoardCell>> TraverseLeft(int start, int stop, int step, TeamColor color, int left, List<BoardCell> skipped = null)
+        private Dictionary<CellCoordinates, List<BoardCellController>> TraverseLeft(int start, int stop, int step, TeamColor color, int left, List<BoardCellController> skipped = null)
         {
-            var moves = new Dictionary<CellCoordinates, List<BoardCell>>();
-            var last = new List<BoardCell>();
-            skipped ??= new List<BoardCell>();
+            var moves = new Dictionary<CellCoordinates, List<BoardCellController>>();
+            var last = new List<BoardCellController>();
+            skipped ??= new List<BoardCellController>();
 
             foreach (var r in Range(start, stop, step))
             {
@@ -132,7 +132,7 @@ namespace Controllers
                 }
                 else
                 {
-                    last = new List<BoardCell> { current };
+                    last = new List<BoardCellController> { current };
                 }
 
                 left -= 1;
@@ -141,11 +141,11 @@ namespace Controllers
             return moves;
         }
     
-        private Dictionary<CellCoordinates, List<BoardCell>> TraverseRight(int start, int stop, int step, TeamColor color, int right, List<BoardCell> skipped = null)
+        private Dictionary<CellCoordinates, List<BoardCellController>> TraverseRight(int start, int stop, int step, TeamColor color, int right, List<BoardCellController> skipped = null)
         {
-            var moves = new Dictionary<CellCoordinates, List<BoardCell>>();
-            var last = new List<BoardCell>();
-            skipped ??= new List<BoardCell>();
+            var moves = new Dictionary<CellCoordinates, List<BoardCellController>>();
+            var last = new List<BoardCellController>();
+            skipped ??= new List<BoardCellController>();
 
             foreach (var r in Range(start, stop, step))
             {
@@ -182,7 +182,7 @@ namespace Controllers
                 }
                 else
                 {
-                    last = new List<BoardCell> { current };
+                    last = new List<BoardCellController> { current };
                 }
 
                 right += 1;
@@ -191,7 +191,7 @@ namespace Controllers
             return moves;
         }
     
-        public Task<bool> CanMoveTo(Piece piece, BoardCell cell, out (CellCoordinates moveKey, List<BoardCell> pieceSkips)? move)
+        public Task<bool> CanMoveTo(PieceController piece, BoardCellController cell, out (CellCoordinates moveKey, List<BoardCellController> pieceSkips)? move)
         {
             move = null;
         
@@ -209,10 +209,10 @@ namespace Controllers
             return Task.Run(() => canMove );
         }
     
-        private static Func<CellCoordinates, bool> SamePosition(BoardCell cell)
+        private static Func<CellCoordinates, bool> SamePosition(BoardCellController cell)
             => x => x.Column == cell.Position.Column && x.Row == cell.Position.Row;
     
-        public void MoveTo(Piece piece, (CellCoordinates moveKey, List<BoardCell> pieceSkips) move)
+        public void MoveTo(PieceController piece, (CellCoordinates moveKey, List<BoardCellController> pieceSkips) move)
         {
             piece.Cell.Piece = null;
         
@@ -232,22 +232,22 @@ namespace Controllers
 
         public double Evaluate()
         {
-            var blackPiecesCount = Game.Instance.BlackPieces.Count;
-            var whitePiecesCount = Game.Instance.WhitePieces.Count;
-            var blackKingsCount = Game.Instance.BlackKings.Count;
-            var whiteKingsCount = Game.Instance.WhiteKings.Count;
+            var blackPiecesCount = GameController.Instance.BlackPieces.Count;
+            var whitePiecesCount = GameController.Instance.WhitePieces.Count;
+            var blackKingsCount = GameController.Instance.BlackKings.Count;
+            var whiteKingsCount = GameController.Instance.WhiteKings.Count;
 
             return blackPiecesCount - whitePiecesCount + (blackKingsCount * 0.5 - whiteKingsCount * 0.5);
         }
     
-        public void Remove(Piece piece) => piece.Remove();
+        public void Remove(PieceController piece) => piece.Remove();
 
-        public static void Replace(BoardGrid newBoard)
+        public static void Replace(BoardGridController newBoard)
         {
             Instance = newBoard;
             EventsStore.Instance.NotifyEvent(GameEventType.MoveMade);
         }
 
-        public BoardGrid Clone() => (BoardGrid)MemberwiseClone();
+        public BoardGridController Clone() => (BoardGridController)MemberwiseClone();
     }
 }

@@ -3,11 +3,11 @@ using UnityEngine;
 
 namespace Controllers
 {
-    public class Piece : MonoBehaviour
+    public class PieceController : MonoBehaviour
     {
 
         public TeamColor Color { get; set; }
-        public BoardCell Cell { get; set; }
+        public BoardCellController Cell { get; set; }
 
         public bool IsKing { get; set; }
     
@@ -20,7 +20,7 @@ namespace Controllers
             _ => throw new Exception("")
         };
 
-        public void SetPosition(BoardCell cell)
+        public void SetPosition(BoardCellController cell)
         {
             Cell = cell;
             Cell.Piece = this;
@@ -36,15 +36,15 @@ namespace Controllers
 
         public bool ReachedLastRow() => Cell.Position.Row == LastRow;
 
-        private void Awake() => Game.Instance.Pieces.Add(this);
+        private void Awake() => GameController.Instance.Pieces.Add(this);
 
         public void Remove()
         {
             Destroy(gameObject);
-            Game.Instance.Pieces.Remove(this);
+            GameController.Instance.Pieces.Remove(this);
             EventsStore.Instance.NotifyEvent(GameEventType.PieceAttacked);
         }
     
-        public Piece Clone() => (Piece) MemberwiseClone();
+        public PieceController Clone() => (PieceController) MemberwiseClone();
     }
 }

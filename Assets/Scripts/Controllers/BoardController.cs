@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Controllers
 {
-    public class Board : MonoBehaviour
+    public class BoardController : MonoBehaviour
     {
         public GameObject whitePiecesPrefab;
         public GameObject blackPiecePrefab;
@@ -36,14 +36,14 @@ namespace Controllers
         private void GeneratePiece(int x, int y, TeamColor teamColor)
         {
             var go = Instantiate(GetPrefabFor(teamColor), transform, true);
-            var piece = go.GetComponent<Piece>();
+            var piece = go.GetComponent<PieceController>();
             piece.Color = teamColor;
             MovePiece(piece, x, y);
         }
 
-        private void MovePiece(Piece piece, int x, int y)
+        private void MovePiece(PieceController piece, int x, int y)
         {
-            BoardGrid.Instance.SetPieceAt(piece, x, y);
+            BoardGridController.Instance.SetPieceAt(piece, x, y);
         }
     
         void Start()
@@ -54,7 +54,7 @@ namespace Controllers
 
         private void InitializeBoardGrid()
         {
-            BoardGrid.Instance.InitGrid();
+            BoardGridController.Instance.InitGrid();
         }
     }
 }
