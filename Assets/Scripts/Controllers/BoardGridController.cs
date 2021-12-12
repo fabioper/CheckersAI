@@ -12,17 +12,30 @@ namespace Controllers
     {
         private const int ROWS = 8;
         private const int COLS = 8;
-    
+
         public BoardCellController[,] Cells = new BoardCellController[8, 8];
         public BoardCellController SelectedCell { get; set; }
-    
-        public static BoardGridController Instance { get; private set; }
-    
+
+        private static BoardGridController _instance;
+
+        public static BoardGridController Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = FindObjectOfType<BoardGridController>();
+                }
+
+                return _instance;
+            }
+        }
+
         private void Awake()
         {
-            Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
-    
+
         public void InitGrid()
         {
             var cellPosition = 0;
@@ -51,24 +64,24 @@ namespace Controllers
         public BoardCellController GetCellAt(int row, int column)
         {
             BoardCellController foundCell = null;
-        
+
             try
             {
                 foundCell = Cells[row, column];
                 return foundCell;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // ignored
+                Debug.Log(ex.Message);
             }
 
             return foundCell;
         }
-    
+
         public bool HasSelection() => SelectedCell != null;
 
         public bool IsSelected(BoardCellController boardCell) => SelectedCell == boardCell;
-    
+
         public Dictionary<CellCoordinates, List<BoardCellController>> GetPossibleMoves(PieceController piece)
         {
             var moves = new Dictionary<CellCoordinates, List<BoardCellController>>();
@@ -81,7 +94,7 @@ namespace Controllers
                 moves.Update(TraverseLeft(row - 1, Math.Max(row - 3, -1), -1, piece.Color, left));
                 moves.Update(TraverseRight(row - 1, Math.Max(row - 3, -1), -1, piece.Color, right));
             }
-        
+
             if (piece.IsTeam(TeamColor.White) || piece.IsKing)
             {
                 moves.Update(TraverseLeft(row + 1, Math.Min(row + 3, ROWS), 1, piece.Color, left));
@@ -90,8 +103,9 @@ namespace Controllers
 
             return moves;
         }
-    
-        private Dictionary<CellCoordinates, List<BoardCellController>> TraverseLeft(int start, int stop, int step, TeamColor color, int left, List<BoardCellController> skipped = null)
+
+        private Dictionary<CellCoordinates, List<BoardCellController>> TraverseLeft(int start, int stop, int step,
+            TeamColor color, int left, List<BoardCellController> skipped = null)
         {
             var moves = new Dictionary<CellCoordinates, List<BoardCellController>>();
             var last = new List<BoardCellController>();
@@ -108,7 +122,7 @@ namespace Controllers
                 {
                     if (skipped.Any() && !last.Any())
                         break;
-                
+
                     if (skipped.Any())
                         moves[new CellCoordinates(r, left)] = last.Concat(skipped).ToList();
                     else
@@ -140,8 +154,9 @@ namespace Controllers
 
             return moves;
         }
-    
-        private Dictionary<CellCoordinates, List<BoardCellController>> TraverseRight(int start, int stop, int step, TeamColor color, int right, List<BoardCellController> skipped = null)
+
+        private Dictionary<CellCoordinates, List<BoardCellController>> TraverseRight(int start, int stop, int step,
+            TeamColor color, int right, List<BoardCellController> skipped = null)
         {
             var moves = new Dictionary<CellCoordinates, List<BoardCellController>>();
             var last = new List<BoardCellController>();
@@ -158,7 +173,7 @@ namespace Controllers
                 {
                     if (skipped.Any() && !last.Any())
                         break;
-                
+
                     if (skipped.Any())
                         moves[new CellCoordinates(r, right)] = last.Concat(skipped).ToList();
                     else
@@ -190,11 +205,12 @@ namespace Controllers
 
             return moves;
         }
-    
-        public Task<bool> CanMoveTo(PieceController piece, BoardCellController cell, out (CellCoordinates moveKey, List<BoardCellController> pieceSkips)? move)
+
+        public Task<bool> CanMoveTo(PieceController piece, BoardCellController cell,
+            out (CellCoordinates moveKey, List<BoardCellController> pieceSkips)? move)
         {
             move = null;
-        
+
             var possibleMoves = GetPossibleMoves(piece);
             var moveKey = possibleMoves.Keys.FirstOrDefault(SamePosition(cell));
 
@@ -206,19 +222,20 @@ namespace Controllers
                 move = (moveKey, pieceSkips);
             }
 
-            return Task.Run(() => canMove );
+            return Task.Run(() => canMove);
         }
-    
+
         private static Func<CellCoordinates, bool> SamePosition(BoardCellController cell)
             => x => x.Column == cell.Position.Column && x.Row == cell.Position.Row;
-    
+
         public void MoveTo(PieceController piece, (CellCoordinates moveKey, List<BoardCellController> pieceSkips) move)
         {
+            // if (piece == null) return;
             piece.Cell.Piece = null;
-        
+
             var (moveKey, pieceSkips) = move;
             piece.SetPosition(GetCellAt(moveKey.Row, moveKey.Column));
-        
+
             if (piece.ReachedLastRow())
                 piece.PromoteKing();
 
@@ -239,15 +256,37 @@ namespace Controllers
 
             return blackPiecesCount - whitePiecesCount + (blackKingsCount * 0.5 - whiteKingsCount * 0.5);
         }
-    
+
         public void Remove(PieceController piece) => piece.Remove();
 
         public static void Replace(BoardGridController newBoard)
         {
-            Instance = newBoard;
+            _instance = newBoard;
             EventsStore.Instance.NotifyEvent(GameEventType.MoveMade);
         }
 
-        public BoardGridController Clone() => (BoardGridController)MemberwiseClone();
+        public BoardGridController Clone()
+        {
+            var board = Instantiate(this);
+            var cells = new BoardCellController[8,8];
+            
+            for (var i = 0; i < 8; i++)
+            {
+                for (var j = 0; j < 8; j++)
+                {
+                    cells[i, j] = Cells[i, j].Clone();
+                }
+            }
+
+            board.Cells = cells;
+            
+            return board;
+        }
+
+        public PieceController GetPiece(int row, int col)
+        {
+            var cell = GetCellAt(row, col);
+            return cell.IsEmpty() ? null : cell.Piece;
+        }
     }
 }

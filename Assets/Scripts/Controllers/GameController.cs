@@ -2,12 +2,26 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Utils;
 
 namespace Controllers
 {
     public class GameController : MonoBehaviour
     {
-        public static GameController Instance { get; private set; }
+        private static GameController _instance;
+
+        public static GameController Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = FindObjectOfType<GameController>();
+                }
+
+                return _instance;
+            }
+        }
         public HashSet<PieceController> Pieces { get; set; }
         public TeamColor? Winner { get; set; }
 
@@ -22,7 +36,7 @@ namespace Controllers
 
         private void Awake()
         {
-            Instance = this;
+            DontDestroyOnLoad(gameObject);
             ActiveTeam = TeamColor.White;
             Pieces = new HashSet<PieceController>();
         }
@@ -116,7 +130,7 @@ namespace Controllers
                 foreach (var move in validMoves)
                 {
                     var tempBoard = board.Clone();
-                    var tempPiece = piece.Clone();
+                    var tempPiece = tempBoard.GetPiece(piece.Cell.Position.Row, piece.Cell.Position.Column);
                     var newBoard = SimulateMove(tempPiece, move.Key, tempBoard, move.Value);
                     moves.Add(newBoard);
                 }

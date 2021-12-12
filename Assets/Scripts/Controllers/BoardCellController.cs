@@ -67,12 +67,21 @@ namespace Controllers
             if (BoardGridController.Instance.SelectedCell != null && BoardGridController.Instance.SelectedCell != this)
             {
                 var selectedPiece = BoardGridController.Instance.SelectedCell.Piece;
-
+                if (selectedPiece == null) return;
+                
                 if (BoardGridController.Instance.CanMoveTo(selectedPiece, this, out _).Result)
                     _objectRenderer.material = selectedMaterial;
             }
         }
 
         public bool IsEmpty() => Piece == null;
+
+        public BoardCellController Clone()
+        {
+            var boardCell = (BoardCellController)MemberwiseClone();
+            boardCell.Piece = Piece.Clone();
+
+            return boardCell;
+        }
     }
 }

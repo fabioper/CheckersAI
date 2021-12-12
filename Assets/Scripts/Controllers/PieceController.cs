@@ -33,7 +33,6 @@ namespace Controllers
             meshRenderer.material.color = IsTeam(TeamColor.White) ? UnityEngine.Color.yellow : UnityEngine.Color.blue;
             IsKing = true;
         }
-
         public bool ReachedLastRow() => Cell.Position.Row == LastRow;
 
         private void Awake() => GameController.Instance.Pieces.Add(this);
@@ -44,7 +43,7 @@ namespace Controllers
             GameController.Instance.Pieces.Remove(this);
             EventsStore.Instance.NotifyEvent(GameEventType.PieceAttacked);
         }
-    
-        public PieceController Clone() => (PieceController) MemberwiseClone();
+
+        public PieceController Clone() => Instantiate(this, null, false);
     }
 }
