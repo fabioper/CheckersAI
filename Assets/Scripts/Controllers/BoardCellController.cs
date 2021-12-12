@@ -7,9 +7,6 @@ namespace Controllers
         [SerializeField] public Material selectedMaterial;
         [SerializeField] public Material defaultMaterial;
     
-        public PieceController Piece { get; set; }
-        public CellCoordinates Position { get; set; }
-
         private Renderer _objectRenderer;
 
         private void Start() => _objectRenderer = GetComponent<MeshRenderer>();
@@ -73,9 +70,7 @@ namespace Controllers
                     _objectRenderer.material = selectedMaterial;
             }
         }
-
-        public bool IsEmpty() => Piece == null;
-
+        
         public BoardCellController Clone()
         {
             var boardCell = (BoardCellController)MemberwiseClone();

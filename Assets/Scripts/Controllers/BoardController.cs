@@ -56,5 +56,6 @@ namespace Controllers
         {
             BoardGridController.Instance.InitGrid();
         }
+        
     }
 }

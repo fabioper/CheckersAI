@@ -22,17 +22,7 @@ namespace Controllers
                 return _instance;
             }
         }
-        public HashSet<PieceController> Pieces { get; set; }
-        public TeamColor? Winner { get; set; }
-
-        public HashSet<PieceController> WhitePieces
-            => new HashSet<PieceController>(Pieces.Where(x => x.IsTeam(TeamColor.White)));
-        public HashSet<PieceController> BlackPieces
-            => new HashSet<PieceController>(Pieces.Where(x => x.IsTeam(TeamColor.Black)));
-        public HashSet<PieceController> WhiteKings
-            => new HashSet<PieceController>(Pieces.Where(x => x.IsTeam(TeamColor.Black) && x.IsKing));
-        public HashSet<PieceController> BlackKings
-            => new HashSet<PieceController>(Pieces.Where(x => x.IsTeam(TeamColor.Black) && x.IsKing));
+        
 
         private void Awake()
         {
@@ -40,12 +30,6 @@ namespace Controllers
             ActiveTeam = TeamColor.White;
             Pieces = new HashSet<PieceController>();
         }
-
-        public TeamColor ActiveTeam { get; set; }
-
-        public bool IsTurn(TeamColor teamColor) => ActiveTeam == teamColor;
-
-        public void ChangeTurn() => ActiveTeam = ActiveTeam == TeamColor.White ? TeamColor.Black : TeamColor.White;
 
         private void Start()
         {
