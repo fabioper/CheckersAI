@@ -9,7 +9,10 @@ namespace Controllers
     
         private Renderer _objectRenderer;
 
-        private void Start() => _objectRenderer = GetComponent<MeshRenderer>();
+        private void Start()
+        {
+            _objectRenderer = GetComponent<MeshRenderer>();
+        }
 
         private void OnMouseEnter() => _objectRenderer.material = selectedMaterial;
 
@@ -69,14 +72,6 @@ namespace Controllers
                 if (BoardGridController.Instance.CanMoveTo(selectedPiece, this, out _).Result)
                     _objectRenderer.material = selectedMaterial;
             }
-        }
-        
-        public BoardCellController Clone()
-        {
-            var boardCell = (BoardCellController)MemberwiseClone();
-            boardCell.Piece = Piece.Clone();
-
-            return boardCell;
         }
     }
 }

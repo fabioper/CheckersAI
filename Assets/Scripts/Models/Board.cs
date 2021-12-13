@@ -8,6 +8,11 @@ namespace Models
 {
     public class Board
     {
+        private const int ROWS = 8;
+        private const int COLS = 8;
+
+        public Cell[,] Cells;
+        public Game Game { get; set; }
 
         public Board(Game game)
         {
@@ -22,13 +27,7 @@ namespace Models
                 }
             }
         }
-        
-        private const int ROWS = 8;
-        private const int COLS = 8;
 
-        public Cell[,] Cells;
-        public Game Game { get; set; }
-        
         public Cell GetCellAt(int row, int column)
         {
             Cell foundCell = null;
@@ -43,6 +42,12 @@ namespace Models
             }
 
             return foundCell;
+        }
+        
+        public Piece GetPiece(int row, int col)
+        {
+            var cell = GetCellAt(row, col);
+            return cell.IsEmpty() ? null : cell.Piece;
         }
         
         public Dictionary<CellCoordinates, List<Cell>> GetPossibleMoves(Piece piece)

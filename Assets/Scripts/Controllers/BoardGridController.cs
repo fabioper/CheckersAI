@@ -13,21 +13,6 @@ namespace Controllers
         
         public BoardCellController SelectedCell { get; set; }
 
-        private static BoardGridController _instance;
-
-        public static BoardGridController Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = FindObjectOfType<BoardGridController>();
-                }
-
-                return _instance;
-            }
-        }
-
         private void Awake()
         {
             DontDestroyOnLoad(gameObject);
@@ -57,42 +42,9 @@ namespace Controllers
         }
 
         public void SetPieceAt(PieceController piece, int x, int y) => piece.SetPosition(Cells[x, y]);
-
         
-
         public bool HasSelection() => SelectedCell != null;
 
         public bool IsSelected(BoardCellController boardCell) => SelectedCell == boardCell;
-
-
-        public static void Replace(BoardGridController newBoard)
-        {
-            _instance = newBoard;
-            EventsStore.Instance.NotifyEvent(GameEventType.MoveMade);
-        }
-
-        public BoardGridController Clone()
-        {
-            var board = Instantiate(this);
-            var cells = new BoardCellController[8,8];
-            
-            for (var i = 0; i < 8; i++)
-            {
-                for (var j = 0; j < 8; j++)
-                {
-                    cells[i, j] = Cells[i, j].Clone();
-                }
-            }
-
-            board.Cells = cells;
-            
-            return board;
-        }
-
-        public PieceController GetPiece(int row, int col)
-        {
-            var cell = GetCellAt(row, col);
-            return cell.IsEmpty() ? null : cell.Piece;
-        }
     }
 }

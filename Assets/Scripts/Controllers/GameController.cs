@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Models;
 using UnityEngine;
 using Utils;
 
@@ -8,70 +9,49 @@ namespace Controllers
 {
     public class GameController : MonoBehaviour
     {
-        private static GameController _instance;
-
-        public static GameController Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = FindObjectOfType<GameController>();
-                }
-
-                return _instance;
-            }
-        }
+        public Game CurrentGame { get; set; }
         
+        private void Awake() => InitGame();
 
-        private void Awake()
+        private void InitGame()
         {
-            DontDestroyOnLoad(gameObject);
-            ActiveTeam = TeamColor.White;
-            Pieces = new HashSet<PieceController>();
-        }
-
-        private void Start()
-        {
-            EventsStore.Instance.OnEvent(GameEventType.MoveMade, ChangeTurn);
-            EventsStore.Instance.OnEvent(GameEventType.MoveMade, MoveIA);
-            EventsStore.Instance.OnEvent(GameEventType.PieceAttacked, VerifyVictory);
+            CurrentGame = new Game();
         }
 
         private void MoveIA()
         {
-            if (!IsTurn(TeamColor.Black))
+            if (!CurrentGame.IsTurn(TeamColor.Black))
                 return;
 
-            var result = Minimax(BoardGridController.Instance, 1, true);
-            BoardGridController.Replace(result.Board);
+            var result = Minimax(CurrentGame.Board, 1, true);
+            CurrentGame.Board = result.Board;
         }
 
         private void VerifyVictory()
         {
-            if (BlackPieces.Count == 0)
+            if (CurrentGame.BlackPieces.Count == 0)
             {
                 Debug.Log("Vitória das peças brancas!");
-                Winner = TeamColor.White;
+                CurrentGame.Winner = TeamColor.White;
                 return;
             }
 
-            if (WhitePieces.Count == 0)
+            if (CurrentGame.WhitePieces.Count == 0)
             {
                 Debug.Log("Vitória das peças pretas!");
-                Winner = TeamColor.Black;
+                CurrentGame.Winner = TeamColor.Black;
             }
         }
 
-        public (double Evaluation, BoardGridController Board) Minimax(BoardGridController board, int depth, bool maxPlayer)
+        public (double Evaluation, Board Board) Minimax(Board board, int depth, bool maxPlayer)
         {
-            if (depth == 0 || Winner.HasValue)
+            if (depth == 0 || CurrentGame.Winner.HasValue)
                 return (board.Evaluate(), board);
 
             if (maxPlayer)
             {
                 var maxEvaluation = double.NegativeInfinity;
-                BoardGridController bestMove = null;
+                Board bestMove = null;
 
                 foreach (var move in GetAllMoves(board, TeamColor.Black))
                 {
@@ -87,7 +67,7 @@ namespace Controllers
             else
             {
                 var minEvaluation = double.PositiveInfinity;
-                BoardGridController bestMove = null;
+                Board bestMove = null;
 
                 foreach (var move in GetAllMoves(board, TeamColor.White))
                 {
@@ -102,18 +82,18 @@ namespace Controllers
             }
         }
 
-        private IEnumerable<BoardGridController> GetAllMoves(BoardGridController board, TeamColor color)
+        private IEnumerable<Board> GetAllMoves(Board board, TeamColor color)
         {
-            var moves = new List<BoardGridController>();
+            var moves = new List<Board>();
 
-            var allPieces = color == TeamColor.Black ? BlackPieces : WhitePieces;
+            var allPieces = color == TeamColor.Black ? board.Game.BlackPieces : board.Game.WhitePieces;
         
             foreach (var piece in allPieces)
             {
                 var validMoves = board.GetPossibleMoves(piece);
                 foreach (var move in validMoves)
                 {
-                    var tempBoard = board.Clone();
+                    var tempBoard = board.DeepCopy();
                     var tempPiece = tempBoard.GetPiece(piece.Cell.Position.Row, piece.Cell.Position.Column);
                     var newBoard = SimulateMove(tempPiece, move.Key, tempBoard, move.Value);
                     moves.Add(newBoard);
@@ -123,7 +103,7 @@ namespace Controllers
             return moves;
         }
 
-        private static BoardGridController SimulateMove(PieceController piece, CellCoordinates position, BoardGridController board, List<BoardCellController> skips)
+        private static Board SimulateMove(Piece piece, CellCoordinates position, Board board, List<Cell> skips)
         {
             board.MoveTo(piece, (position, skips));
             if (skips.Any())

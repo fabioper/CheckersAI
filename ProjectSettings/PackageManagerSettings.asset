@@ -48,5 +48,4 @@ MonoBehaviour:
     m_Url: https://npm.cloudsmith.io/jillejr/newtonsoft-json-for-unity
     m_Scopes:
     - jillejr.newtonsoft.json-for-unity
-    - 
-    m_SelectedScopeIndex: 1
+    m_SelectedScopeIndex: 0
